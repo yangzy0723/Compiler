@@ -37,9 +37,9 @@ public class Main {
             else
                 num = Integer.parseInt(numString); // 十进制转换
             decimalString = String.valueOf(num);
-            System.out.println(SysYLexer.VOCABULARY.getSymbolicName(t.getType()) + " " + decimalString + " at Line " + t.getLine() + ".");
+            System.err.println(SysYLexer.VOCABULARY.getSymbolicName(t.getType()) + " " + decimalString + " at Line " + t.getLine() + ".");
         }
         else
-            System.out.println(SysYLexer.VOCABULARY.getSymbolicName(t.getType()) + " " + t.getText() + " at Line " + t.getLine() + ".");
+            System.err.println(SysYLexer.VOCABULARY.getSymbolicName(t.getType()) + " " + t.getText() + " at Line " + t.getLine() + ".");
     }
 }

@@ -19,6 +19,6 @@ public class MyErrorListener extends BaseErrorListener {
     }
 
     public void printLexerErrorInformation() {
-        System.err.println(this.errorBuffer.toString());
+        System.err.println(this.errorBuffer);
     }
 }
