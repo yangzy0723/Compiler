@@ -1,11 +1,10 @@
-import org.antlr.v4.codegen.model.Recognizer;
 import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.Recognizer;
 
 public class MyErrorListener extends BaseErrorListener {
     private boolean lexerError = false;
     private final StringBuilder errorBuffer = new StringBuilder();
-
     @Override
     public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
         if (e != null) {
