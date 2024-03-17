@@ -11,7 +11,7 @@ JAVA = java
 PFILE = $(shell find . -name "SysYParser.g4")
 LFILE = $(shell find . -name "SysYLexer.g4")
 JAVAFILE = $(shell find . -name "*.java")
-ANTLRPATH = $(shell find /usr/local/lib -name "antlr-*-complete.jar")
+ANTLRPATH = $(shell find /home/jojo/Tools -name "antlr-*-complete.jar")
 
 compile: antlr
 	$(call git_commit,"make")
