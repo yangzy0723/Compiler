@@ -1,0 +1,33 @@
+plugins {
+    id 'java'
+    id 'antlr'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src']           // 设置 Java 源文件目录
+        }
+        antlr {
+            srcDirs = ['src']     // 设置 ANTLR 源文件目录
+        }
+    }
+}
+
+group = 'yangzy0723'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    // https://mvnrepository.com/artifact/org.antlr/antlr4
+    antlr 'org.antlr:antlr4:4.9.1'
+    testImplementation platform('org.junit:junit-bom:5.9.1')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
