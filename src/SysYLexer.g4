@@ -33,7 +33,7 @@ R_BRACKT : ']';
 COMMA : ',';
 SEMICOLON : ';';
 // 以下划线或字母开头，仅包含下划线、英文字母大小写、阿拉伯数字
-IDENT : ('_'|LETTER)('_'|LETTER|NUMBER)*;
+IDENT : [_a-zA-Z][_a-zA-Z0-9]*;
 //  数字常量，包含十进制数，0开头的八进制数，0x或0X开头的十六进制数
 INTEGER_CONST : DECIMAL
               | OCTAL
@@ -42,8 +42,6 @@ WS : [ \r\n\t]+ -> skip;
 SL_COMMENT : '//'.*?'\n' -> skip;
 MULTILINE : '/*'.*?'*/' -> skip;
 
-fragment LETTER : [a-zA-Z];
-fragment NUMBER : [0-9];
-fragment DECIMAL : '0'|[1-9]NUMBER*;
-fragment OCTAL : '0'[0-7]*;
+fragment DECIMAL : '0'|[1-9][0-9]*;
+fragment OCTAL : '0'[0-7]+;
 fragment HEX : '0'[xX][0-9a-fA-F]+;
