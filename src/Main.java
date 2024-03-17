@@ -11,6 +11,7 @@ public class Main {
     public static void main(String[] args) throws IOException {
         if (args.length < 1)
             System.err.println("input path is required");
+//        String source = "tests/test1.sysy";
         String source = args[0];
         CharStream input = CharStreams.fromFileName(source);
         SysYLexer sysYLexer = new SysYLexer(input);
@@ -26,10 +27,20 @@ public class Main {
     }
 
     private static void printSysYTokenInformation(Token t){
-        if(t.getType() == SysYLexer.INT){
-
+        if(t.getType() == SysYLexer.INTEGER_CONST){
+            int num = 0;
+            String numString = t.getText();
+            String decimalString = "";
+            if (numString.startsWith("0x") || numString.startsWith("0X"))
+                num = Integer.parseInt(numString.substring(2), 16); // 十六进制转换
+            else if (numString.startsWith("0"))
+                num = Integer.parseInt(numString, 8); // 八进制转换
+            else
+                num = Integer.parseInt(numString); // 十进制转换
+            decimalString = String.valueOf(num);
+            System.out.println(SysYLexer.VOCABULARY.getSymbolicName(t.getType()) + " " + decimalString + " at Line " + t.getLine() + ".");
         }
         else
-            System.out.println(t.getClass() + " " + t.getText() + " at Line " + t.getLine() + ".");
+            System.out.println(SysYLexer.VOCABULARY.getSymbolicName(t.getType()) + " " + t.getText() + " at Line " + t.getLine() + ".");
     }
 }
