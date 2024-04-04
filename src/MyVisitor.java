@@ -60,7 +60,6 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
                     s = "\u001B[" + bracketColor[nowBracketOrder] + "m" + nodeLiteralName;
                 else
                     s = "\u001B[" + bracketColor[nowBracketOrder] + ";" + SGR_Name.Underlined + "m" + nodeLiteralName;
-                stringBuffer.append(s);
                 nowBracketOrder--;
                 if(nowBracketOrder < 0){
                     nowBracketOrder = 5;
