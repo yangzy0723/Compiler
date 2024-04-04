@@ -8,6 +8,9 @@ sourceSets {
         java {
             srcDirs = ['src']           // 设置 Java 源文件目录
         }
+        antlr {
+            srcDirs = ['src']           // 设置 ANTLR 源文件目录
+        }
     }
 }
 

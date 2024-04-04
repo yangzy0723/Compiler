@@ -2,7 +2,7 @@ import org.antlr.v4.runtime.BaseErrorListener;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 
-public class MyErrorListener extends BaseErrorListener {
+public class MyLexerErrorListener extends BaseErrorListener {
     private boolean lexerError = false;
     private final StringBuilder errorBuffer = new StringBuilder();
     @Override
