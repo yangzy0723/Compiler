@@ -246,4 +246,14 @@ public interface SysYParserListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitConstExp(SysYParser.ConstExpContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link SysYParser#funcName}.
+	 * @param ctx the parse tree
+	 */
+	void enterFuncName(SysYParser.FuncNameContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link SysYParser#funcName}.
+	 * @param ctx the parse tree
+	 */
+	void exitFuncName(SysYParser.FuncNameContext ctx);
 }

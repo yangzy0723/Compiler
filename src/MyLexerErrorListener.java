@@ -9,7 +9,7 @@ public class MyLexerErrorListener extends BaseErrorListener {
     public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
         if (e != null) {
             this.lexerError = true;
-            String errorInformation = "Error type A at Line " + line + ":" + msg + "\n";
+            String errorInformation = "Error type A at Line " + line + ": " + msg + "\n";
             this.errorBuffer.append(errorInformation);
         }
     }

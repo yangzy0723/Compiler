@@ -33,6 +33,12 @@ public class Main {
         ParseTree tree = sysYParser.compUnit();
         MyVisitor myVisitor = new MyVisitor();
         myVisitor.visit(tree);
+
+        if(myParserErrorListener.isParserError())
+            myParserErrorListener.printParserErrorInformation();
+        else
+            myVisitor.printStringBuffer();
+
     }
 
     private static void printSysYTokenInformation(Token t){
