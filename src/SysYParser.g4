@@ -44,7 +44,7 @@ initVal
    	;
 
 funcDef
-   	: funcType IDENT L_PAREN funcFParams? R_PAREN block
+   	: funcType funcName L_PAREN funcFParams? R_PAREN block
    	;
 
 funcType
@@ -84,7 +84,7 @@ exp
    	: L_PAREN exp R_PAREN
    	| lVal
    	| number
-   	| IDENT L_PAREN funcRParams? R_PAREN
+   	| funcName L_PAREN funcRParams? R_PAREN
    	| unaryOp exp
    	| exp (MUL | DIV | MOD) exp
    	| exp (PLUS | MINUS) exp
@@ -123,3 +123,7 @@ param
 constExp
    	: exp
    	;
+
+funcName
+	: IDENT
+	;
