@@ -70,14 +70,15 @@ blockItem
    	;
 
 statement
-   	: lVal ASSIGN exp SEMICOLON
-   	| exp? SEMICOLON
-   	| block
-   	| IF L_PAREN cond R_PAREN statement (ELSE statement)?
-   	| WHILE L_PAREN cond R_PAREN statement
-   	| BREAK SEMICOLON
-   	| CONTINUE SEMICOLON
-   	| RETURN (exp)? SEMICOLON
+   	: lVal ASSIGN exp SEMICOLON									# StatementIVal
+   	| exp? SEMICOLON											# StatementExp
+   	| block														# StatementBlock
+   	| IF L_PAREN cond R_PAREN statement (ELSE statement)?		# StatementIf
+   	| WHILE L_PAREN cond R_PAREN statement						# StatmentWhile
+   	| BREAK SEMICOLON											# StatementBreak
+   	| CONTINUE SEMICOLON										# StatementContinue
+   	| RETURN exp SEMICOLON										# StatementReturnWithExp
+   	| RETURN SEMICOLON											# StatementReturnWithoutExp
    	;
 
 exp

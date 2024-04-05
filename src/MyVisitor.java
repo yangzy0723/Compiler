@@ -50,12 +50,16 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
                     nowBracketOrder = nowBracketOrder % 6;
                     step++;
                 }
+                if(Objects.equals(nodeSymbolicName, "L_BRACE") && !isDeclare)
+                    stringBuffer.append(" ");
                 if(!isDeclare)
                     s = "\u001B[" + bracketColor[nowBracketOrder] + "m" + nodeLiteralName;
                 else
                     s = "\u001B[" + bracketColor[nowBracketOrder] + ";" + SGR_Name.Underlined + "m" + nodeLiteralName;
             }
             else if(check(nodeSymbolicName, rights)){
+                if(Objects.equals(nodeSymbolicName, "R_BRACE") && !isDeclare)
+                    stringBuffer.append("\n");
                 if(!isDeclare)
                     s = "\u001B[" + bracketColor[nowBracketOrder] + "m" + nodeLiteralName;
                 else
@@ -76,8 +80,9 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
                 else if(isDeclare) {
                     s = "\u001B[" + SGR_Name.LightMagenta + ";" + SGR_Name.Underlined + "m" + nodeLiteralName;
                 }
-                else if(isStatement)
+                else if(isStatement) {
                     s = "\u001B[" + SGR_Name.White + "m" + nodeLiteralName;
+                }
                 else
                     s = nodeLiteralName;
             }
@@ -99,6 +104,7 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
     public Void visitStatement(SysYParser.StatementContext ctx) {
         isStatement = true;
         Void ret = super.visitStatement(ctx);
+        stringBuffer.append("\n");
         isStatement = false;
         return ret;
     }
@@ -107,6 +113,7 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
     public Void visitDecl(SysYParser.DeclContext ctx) {
         isDeclare = true;
         Void ret =  super.visitDecl(ctx);
+        stringBuffer.append("\n");
         isDeclare = false;
         return ret;
     }
