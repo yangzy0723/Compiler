@@ -172,10 +172,8 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
 
     @Override
     public Void visitStatementBreak(SysYParser.StatementBreakContext ctx) {
-        isStatement = true;
         Void ret = super.visitStatementBreak(ctx);
         stringBuffer.append("\n");
-        isStatement = false;
         return ret;
     }
 
