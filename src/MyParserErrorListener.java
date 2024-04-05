@@ -7,11 +7,9 @@ public class MyParserErrorListener extends BaseErrorListener {
     private final StringBuilder errorBuffer = new StringBuilder();
     @Override
     public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
-        if (e != null) {
             this.parserError = true;
             String errorInformation = "Error type B at Line " + line + ": " + msg + "\n";
             this.errorBuffer.append(errorInformation);
-        }
     }
 
     public boolean isParserError() {
