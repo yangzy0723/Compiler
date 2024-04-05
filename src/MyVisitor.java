@@ -21,9 +21,9 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
 
     @Override
     public Void visitTerminal(TerminalNode node) {
-        if(node.getSymbol().getType() != -1){
+        if(node.getSymbol().getType() != -1) {
             String s = "";
-            String nodeSymbolicName =SysYLexer.VOCABULARY.getSymbolicName(node.getSymbol().getType());
+            String nodeSymbolicName = SysYLexer.VOCABULARY.getSymbolicName(node.getSymbol().getType());
             String nodeLiteralName = node.getText();
             stringBuffer.append("\u001B[0m");
             if(check(nodeSymbolicName, keywords)) {
@@ -84,6 +84,7 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
             stringBuffer.append(s);
         }
         return this.defaultResult();
+
     }
 
     @Override
@@ -119,6 +120,6 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
     }
 
     public void printStringBuffer(){
-        System.err.println(this.stringBuffer);
+        System.out.println(this.stringBuffer);
     }
 }
