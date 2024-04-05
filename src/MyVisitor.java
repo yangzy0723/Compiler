@@ -1,9 +1,14 @@
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.Objects;
+import java.util.Vector;
 
 public class MyVisitor extends SysYParserBaseVisitor<Void>{
-    private final StringBuilder stringBuffer = new StringBuilder();
+    private StringBuilder stringBuffer = new StringBuilder();
+    private int indentLevel = 0;
+    private final Vector<StringBuilder> stringBuffers = new Vector<>();
+    private final Vector<Integer> indentLevels = new Vector<>();
+    private boolean extraIndent = false;
 
     public static int[] bracketColor = {SGR_Name.LightRed, SGR_Name.LightGreen, SGR_Name.LightYellow, SGR_Name.LightBlue, SGR_Name.LightMagenta, SGR_Name.LightCyan};
     public static String[] lefts = {"L_PAREN", "L_BRACKT", "L_BRACE"};
@@ -14,6 +19,7 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
     public static String[] keywords = {"CONST", "INT", "VOID", "IF", "ELSE", "WHILE", "BREAK", "CONTINUE", "RETURN"};
     public static String[] operators = {"PLUS", "MINUS", "MUL", "DIV", "MOD", "ASSIGN", "EQ", "NEQ", "LT", "GT", "LE", "GE", "NOT", "AND", "OR", "COMMA", "SEMICOLON"};
     public static String[] keywordsSpace = {"CONST", "INT", "VOID", "IF", "ELSE", "WHILE", "RETURN"};
+    public static String[] operatorsSpace = {"PLUS", "MINUS", "MUL", "DIV", "MOD", "ASSIGN", "EQ", "NEQ", "LT", "GT", "LE", "GE", "AND", "OR"};
     public static String[] integerConst = {"INTEGER_CONST"};
 
     private boolean isFuncName = false;
@@ -21,7 +27,8 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
     private boolean isDeclare = false;
     private boolean isLeftBraceSpace = false;
     private boolean isBreakWithoutExp = false;
-    private int indentLevel = 0;
+    private boolean isUnaryOp = false;
+    private boolean passElse = false;
 
     @Override
     public Void visitTerminal(TerminalNode node) {
@@ -29,9 +36,14 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
             String nodeSymbolicName = SysYLexer.VOCABULARY.getSymbolicName(node.getSymbol().getType());
             String nodeLiteralName = node.getText();
             stringBuffer.append("\u001B[0m");
+
             if(check(nodeSymbolicName, keywords)) {
-                if(Objects.equals(nodeSymbolicName, "ELSE"))
-                    stringBuffer.append("\n");
+                if(Objects.equals(nodeSymbolicName, "ELSE")) {
+                    newLine();
+                    passElse = true;
+                }
+                else if(Objects.equals(nodeSymbolicName, "IF"))
+                    passElse = false;
                 if(!isDeclare)
                     stringBuffer.append("\u001B[").append(SGR_Name.LightCyan).append("m").append(nodeLiteralName);
                 else
@@ -43,10 +55,23 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
                 }
             }
             else if(check(nodeSymbolicName, operators)) {
+                if(check(nodeSymbolicName, operatorsSpace)){
+                    if(!isUnaryOp)
+                        stringBuffer.append(" ");
+                }
                 if(!isDeclare)
                     stringBuffer.append("\u001B[").append(SGR_Name.LightRed).append("m").append(nodeLiteralName);
                 else
-                   stringBuffer.append("\u001B[").append(SGR_Name.LightRed).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName);
+                    stringBuffer.append("\u001B[").append(SGR_Name.LightRed).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName);
+                if(check(nodeSymbolicName, operatorsSpace)){
+                    if(!isUnaryOp)
+                        stringBuffer.append(" ");
+                    else
+                        isUnaryOp = false;
+                }
+
+                else if(Objects.equals(nodeSymbolicName, "COMMA"))
+                    stringBuffer.append(" ");
             }
             else if(check(nodeSymbolicName, integerConst)) {
                 if(!isDeclare)
@@ -60,26 +85,38 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
                     nowBracketOrder = nowBracketOrder % 6;
                     step++;
                 }
-                if(Objects.equals(nodeSymbolicName, "L_BRACE") && !isDeclare) {
-                    if(isLeftBraceSpace) {
-                        stringBuffer.append(" ");
-                        isLeftBraceSpace = false;
+
+                if(isDeclare)
+                    stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName);
+                else{
+                    if(Objects.equals(nodeSymbolicName, "L_BRACE")){
+                        if(isLeftBraceSpace){
+                            stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append(" {");
+                            isLeftBraceSpace = false;
+                            extraIndent = true;
+                        }
+                        else{
+                            newLine();
+                            stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append("{");
+                            extraIndent = true;
+                        }
+                        indentLevel++;
                     }
                     else
-                        stringBuffer.append("\n");
+                        stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append(nodeLiteralName);
                 }
-                if(!isDeclare)
-                    stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append(nodeLiteralName);
-                else
-                    stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName);
             }
             else if(check(nodeSymbolicName, rights)){
-                if(Objects.equals(nodeSymbolicName, "R_BRACE") && !isDeclare)
-                    stringBuffer.append("\n");
-                if(!isDeclare)
-                    stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append(nodeLiteralName);
-                else
+                if(isDeclare)
                     stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName);
+                else{
+                    if(Objects.equals(nodeSymbolicName, "R_BRACE")) {
+                        newLine();
+                        indentLevel--;
+                    }
+                    stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append(nodeLiteralName);
+                }
+
                 nowBracketOrder--;
                 if(nowBracketOrder < 0){
                     nowBracketOrder = 5;
@@ -113,18 +150,9 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
         return ret;
     }
 
-//    @Override
-//    public Void visitStatement(SysYParser.StatementContext ctx) {
-//        isStatement = true;
-//        Void ret = super.visitStatement(ctx);
-//        stringBuffer.append("\n");
-//        isStatement = false;
-//        return ret;
-//    }
-
     @Override
     public Void visitStatementIVal(SysYParser.StatementIValContext ctx) {
-        stringBuffer.append("\n");
+        newLine();
 
         isStatement = true;
         Void ret = super.visitStatementIVal(ctx);
@@ -135,7 +163,7 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
 
     @Override
     public Void visitStatementExp(SysYParser.StatementExpContext ctx) {
-        stringBuffer.append("\n");
+        newLine();
 
         isStatement = true;
         Void ret = super.visitStatementExp(ctx);
@@ -145,14 +173,11 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
     }
 
     @Override
-    public Void visitStatementBlock(SysYParser.StatementBlockContext ctx) {
-        Void ret = super.visitStatementBlock(ctx);
-        return ret;
-    }
-
-    @Override
     public Void visitStatementIf(SysYParser.StatementIfContext ctx) {
-        stringBuffer.append("\n");
+        if(!passElse)
+            newLine();
+        else
+            passElse = false;
 
         isStatement = true;
         isLeftBraceSpace = true;
@@ -165,7 +190,7 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
 
     @Override
     public Void visitStatementWhile(SysYParser.StatementWhileContext ctx) {
-        stringBuffer.append("\n");
+        newLine();
 
         isStatement = true;
         isLeftBraceSpace = true;
@@ -178,14 +203,15 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
 
     @Override
     public Void visitStatementBreak(SysYParser.StatementBreakContext ctx) {
-        stringBuffer.append("\n");
+        newLine();
+
         Void ret = super.visitStatementBreak(ctx);
         return ret;
     }
 
     @Override
     public Void visitStatementContinue(SysYParser.StatementContinueContext ctx) {
-        stringBuffer.append("\n");
+        newLine();
 
         isStatement = true;
         Void ret = super.visitStatementContinue(ctx);
@@ -196,7 +222,7 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
 
     @Override
     public Void visitStatementReturnWithExp(SysYParser.StatementReturnWithExpContext ctx) {
-        stringBuffer.append("\n");
+        newLine();
 
         isStatement = true;
         Void ret = super.visitStatementReturnWithExp(ctx);
@@ -207,7 +233,7 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
 
     @Override
     public Void visitStatementReturnWithoutExp(SysYParser.StatementReturnWithoutExpContext ctx) {
-        stringBuffer.append("\n");
+        newLine();
 
         isStatement = true;
         isBreakWithoutExp = true;
@@ -220,21 +246,45 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
 
     @Override
     public Void visitDefFunc(SysYParser.DefFuncContext ctx) {
+        newLine();
+        newLine();
+
         isLeftBraceSpace = true;
-        stringBuffer.append("\n\n");
         Void ret = super.visitDefFunc(ctx);
+        isLeftBraceSpace = false;
+
         return ret;
     }
 
     @Override
     public Void visitDecl(SysYParser.DeclContext ctx) {
+        newLine();
+
         isDeclare = true;
-        stringBuffer.append("\n");
         Void ret =  super.visitDecl(ctx);
         isDeclare = false;
+
         return ret;
     }
 
+    @Override
+    public Void visitExpressionUnaryOp(SysYParser.ExpressionUnaryOpContext ctx) {
+        isUnaryOp = true;
+        Void ret = super.visitExpressionUnaryOp(ctx);
+        isUnaryOp = false;
+
+        return ret;
+    }
+
+    @Override
+    public Void visitBlock(SysYParser.BlockContext ctx) {
+        if(passElse)
+            passElse = false;
+
+        Void ret = super.visitBlock(ctx);
+
+        return ret;
+    }
 
     private boolean check(String goal, String[] sets){
         for(String s : sets)
@@ -244,11 +294,30 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
     }
 
     private void dealIndent(int indentLevel){
-        stringBuffer.append(" ".repeat(Math.max(0, indentLevel * 4)));
+        System.out.print(" ".repeat(Math.max(0, indentLevel * 4)));
+    }
+
+    private void newLine(){
+        if(extraIndent)
+            indentLevel--;
+        stringBuffers.add(stringBuffer);
+        indentLevels.add(indentLevel);
+        if(extraIndent){
+            extraIndent = false;
+            indentLevel++;
+        }
+        stringBuffer = new StringBuilder();
     }
 
     public void printStringBuffer(){
-        stringBuffer.deleteCharAt(0);
-        System.out.println(this.stringBuffer);
+        newLine();
+        while(stringBuffers.get(0).length() == 0) {
+            stringBuffers.remove(0);
+            indentLevels.remove(0);
+        }
+        for(int i = 0; i < stringBuffers.size(); i++) {
+            dealIndent(indentLevels.get(i));
+            System.out.println(stringBuffers.get(i));
+        }
     }
 }
