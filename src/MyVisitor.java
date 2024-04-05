@@ -13,14 +13,15 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
 
     public static String[] keywords = {"CONST", "INT", "VOID", "IF", "ELSE", "WHILE", "BREAK", "CONTINUE", "RETURN"};
     public static String[] operators = {"PLUS", "MINUS", "MUL", "DIV", "MOD", "ASSIGN", "EQ", "NEQ", "LT", "GT", "LE", "GE", "NOT", "AND", "OR", "COMMA", "SEMICOLON"};
+    public static String[] keywordsSpace = {"CONST", "INT", "VOID", "IF", "ELSE", "WHILE", "RETURN"};
     public static String[] integerConst = {"INTEGER_CONST"};
 
     private boolean isFuncName = false;
     private boolean isStatement = false;
     private boolean isDeclare = false;
-    private boolean isIf = false;
-    private boolean isWhile = false;
-    private boolean isFunc = false;
+    private boolean isLeftBraceSpace = false;
+    private boolean isBreakWithoutExp = false;
+    private int indentLevel = 0;
 
     @Override
     public Void visitTerminal(TerminalNode node) {
@@ -29,10 +30,17 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
             String nodeLiteralName = node.getText();
             stringBuffer.append("\u001B[0m");
             if(check(nodeSymbolicName, keywords)) {
+                if(Objects.equals(nodeSymbolicName, "ELSE"))
+                    stringBuffer.append("\n");
                 if(!isDeclare)
                     stringBuffer.append("\u001B[").append(SGR_Name.LightCyan).append("m").append(nodeLiteralName);
                 else
                     stringBuffer.append("\u001B[").append(SGR_Name.LightCyan).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName);
+                if(check(nodeSymbolicName, keywordsSpace)){
+                    if(!(Objects.equals(nodeSymbolicName, "RETURN") && isBreakWithoutExp)){
+                        stringBuffer.append(" ");
+                    }
+                }
             }
             else if(check(nodeSymbolicName, operators)) {
                 if(!isDeclare)
@@ -53,35 +61,21 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
                     step++;
                 }
                 if(Objects.equals(nodeSymbolicName, "L_BRACE") && !isDeclare) {
-                    if(isWhile)
+                    if(isLeftBraceSpace) {
                         stringBuffer.append(" ");
-                    else if(isIf)
-                        stringBuffer.append(" ");
-                    else if(isFunc)
-                        stringBuffer.append(" ");
+                        isLeftBraceSpace = false;
+                    }
+                    else
+                        stringBuffer.append("\n");
                 }
                 if(!isDeclare)
                     stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append(nodeLiteralName);
                 else
                     stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName);
-                if(Objects.equals(nodeSymbolicName, "L_BRACE") && !isDeclare) {
-                    if(isWhile) {
-                        stringBuffer.append("\n");
-                        isWhile = false;
-                    }
-                    else if(isIf){
-                        stringBuffer.append("\n");
-                        isIf = false;
-                    }
-                    else if(isFunc){
-                        stringBuffer.append("\n");
-                        isFunc = false;
-                    }
-                    else
-                        stringBuffer.append("\n");
-                }
             }
             else if(check(nodeSymbolicName, rights)){
+                if(Objects.equals(nodeSymbolicName, "R_BRACE") && !isDeclare)
+                    stringBuffer.append("\n");
                 if(!isDeclare)
                     stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append(nodeLiteralName);
                 else
@@ -115,6 +109,7 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
         isFuncName = true;
         Void ret = super.visitFuncName(ctx);
         isFuncName = false;
+
         return ret;
     }
 
@@ -129,107 +124,131 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
 
     @Override
     public Void visitStatementIVal(SysYParser.StatementIValContext ctx) {
+        stringBuffer.append("\n");
+
         isStatement = true;
         Void ret = super.visitStatementIVal(ctx);
-        stringBuffer.append("\n");
         isStatement = false;
+
         return ret;
     }
 
     @Override
     public Void visitStatementExp(SysYParser.StatementExpContext ctx) {
+        stringBuffer.append("\n");
+
         isStatement = true;
         Void ret = super.visitStatementExp(ctx);
-        stringBuffer.append("\n");
         isStatement = false;
+
         return ret;
     }
 
     @Override
     public Void visitStatementBlock(SysYParser.StatementBlockContext ctx) {
         Void ret = super.visitStatementBlock(ctx);
-        stringBuffer.append("\n");
         return ret;
     }
 
     @Override
     public Void visitStatementIf(SysYParser.StatementIfContext ctx) {
+        stringBuffer.append("\n");
+
         isStatement = true;
-        isIf = true;
+        isLeftBraceSpace = true;
         Void ret = super.visitStatementIf(ctx);
+        isLeftBraceSpace = false;
         isStatement = false;
+
         return ret;
     }
 
     @Override
     public Void visitStatementWhile(SysYParser.StatementWhileContext ctx) {
+        stringBuffer.append("\n");
+
         isStatement = true;
-        isWhile = true;
+        isLeftBraceSpace = true;
         Void ret = super.visitStatementWhile(ctx);
+        isLeftBraceSpace = false;
         isStatement = false;
+
         return ret;
     }
 
     @Override
     public Void visitStatementBreak(SysYParser.StatementBreakContext ctx) {
-        Void ret = super.visitStatementBreak(ctx);
         stringBuffer.append("\n");
+        Void ret = super.visitStatementBreak(ctx);
         return ret;
     }
 
     @Override
     public Void visitStatementContinue(SysYParser.StatementContinueContext ctx) {
+        stringBuffer.append("\n");
+
         isStatement = true;
         Void ret = super.visitStatementContinue(ctx);
-        stringBuffer.append("\n");
         isStatement = false;
+
         return ret;
     }
 
     @Override
     public Void visitStatementReturnWithExp(SysYParser.StatementReturnWithExpContext ctx) {
+        stringBuffer.append("\n");
+
         isStatement = true;
         Void ret = super.visitStatementReturnWithExp(ctx);
-        stringBuffer.append("\n");
         isStatement = false;
+
         return ret;
     }
 
     @Override
     public Void visitStatementReturnWithoutExp(SysYParser.StatementReturnWithoutExpContext ctx) {
-        isStatement = true;
-        Void ret = super.visitStatementReturnWithoutExp(ctx);
         stringBuffer.append("\n");
+
+        isStatement = true;
+        isBreakWithoutExp = true;
+        Void ret = super.visitStatementReturnWithoutExp(ctx);
+        isBreakWithoutExp = false;
         isStatement = false;
+
         return ret;
     }
 
     @Override
     public Void visitDefFunc(SysYParser.DefFuncContext ctx) {
-        isFunc = true;
+        isLeftBraceSpace = true;
+        stringBuffer.append("\n\n");
         Void ret = super.visitDefFunc(ctx);
-        stringBuffer.append("\n");
         return ret;
     }
 
     @Override
     public Void visitDecl(SysYParser.DeclContext ctx) {
         isDeclare = true;
-        Void ret =  super.visitDecl(ctx);
         stringBuffer.append("\n");
+        Void ret =  super.visitDecl(ctx);
         isDeclare = false;
         return ret;
     }
 
 
-    boolean check(String goal, String[] sets){
+    private boolean check(String goal, String[] sets){
         for(String s : sets)
             if(s.equals(goal))
                 return true;
         return false;
     }
 
+    private void dealIndent(int indentLevel){
+        stringBuffer.append(" ".repeat(Math.max(0, indentLevel * 4)));
+    }
+
     public void printStringBuffer(){
+        stringBuffer.deleteCharAt(0);
         System.out.println(this.stringBuffer);
     }
 }

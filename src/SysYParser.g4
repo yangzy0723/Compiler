@@ -82,13 +82,13 @@ statement
    	;
 
 exp
-   	: L_PAREN exp R_PAREN
-   	| lVal
-   	| number
-   	| funcName L_PAREN funcRParams? R_PAREN
-   	| unaryOp exp
-   	| exp (MUL | DIV | MOD) exp
-   	| exp (PLUS | MINUS) exp
+   	: L_PAREN exp R_PAREN										# ExpressionExp
+   	| lVal														# ExpressionLVal
+   	| number													# ExpressionNumber
+   	| funcName L_PAREN funcRParams? R_PAREN						# ExpressionFunc
+   	| unaryOp exp												# ExpressionUnaryOp
+   	| exp (MUL | DIV | MOD) exp									# ExpressionMulDivMod
+   	| exp (PLUS | MINUS) exp									# ExpressionPlusMinus
    	;
 
 cond
