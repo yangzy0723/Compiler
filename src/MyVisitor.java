@@ -18,6 +18,8 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
     private boolean isFuncName = false;
     private boolean isStatement = false;
     private boolean isDeclare = false;
+    private boolean isIf = false;
+    private boolean isWhile = false;
 
     @Override
     public Void visitTerminal(TerminalNode node) {
@@ -50,8 +52,17 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
                     nowBracketOrder = nowBracketOrder % 6;
                     step++;
                 }
-                if(Objects.equals(nodeSymbolicName, "L_BRACE") && !isDeclare)
-                    stringBuffer.append(" ");
+                if(Objects.equals(nodeSymbolicName, "L_BRACE") && !isDeclare) {
+                    if(isWhile) {
+                        stringBuffer.append(" ");
+                        isWhile = false;
+                    }
+                    else if(isIf){
+                        stringBuffer.append(" ");
+                        isIf = false;
+                    }
+                    else if(isFuncName)
+                }
                 if(!isDeclare)
                     s = "\u001B[" + bracketColor[nowBracketOrder] + "m" + nodeLiteralName;
                 else
@@ -100,10 +111,89 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
         return ret;
     }
 
+//    @Override
+//    public Void visitStatement(SysYParser.StatementContext ctx) {
+//        isStatement = true;
+//        Void ret = super.visitStatement(ctx);
+//        stringBuffer.append("\n");
+//        isStatement = false;
+//        return ret;
+//    }
+
     @Override
-    public Void visitStatement(SysYParser.StatementContext ctx) {
+    public Void visitStatementIVal(SysYParser.StatementIValContext ctx) {
         isStatement = true;
-        Void ret = super.visitStatement(ctx);
+        Void ret = super.visitStatementIVal(ctx);
+        stringBuffer.append("\n");
+        isStatement = false;
+        return ret;
+    }
+
+    @Override
+    public Void visitStatementExp(SysYParser.StatementExpContext ctx) {
+        isStatement = true;
+        Void ret = super.visitStatementExp(ctx);
+        stringBuffer.append("\n");
+        isStatement = false;
+        return ret;
+    }
+
+    @Override
+    public Void visitStatementBlock(SysYParser.StatementBlockContext ctx) {
+        Void ret = super.visitStatementBlock(ctx);
+        stringBuffer.append("\n");
+        return ret;
+    }
+
+    @Override
+    public Void visitStatementIf(SysYParser.StatementIfContext ctx) {
+        isStatement = true;
+        Void ret = super.visitStatementIf(ctx);
+        stringBuffer.append("\n");
+        isStatement = false;
+        return ret;
+    }
+
+    @Override
+    public Void visitStatmentWhile(SysYParser.StatmentWhileContext ctx) {
+        isStatement = true;
+        Void ret = super.visitStatmentWhile(ctx);
+        stringBuffer.append("\n");
+        isStatement = false;
+        return ret;
+    }
+
+    @Override
+    public Void visitStatementBreak(SysYParser.StatementBreakContext ctx) {
+        isStatement = true;
+        Void ret = super.visitStatementBreak(ctx);
+        stringBuffer.append("\n");
+        isStatement = false;
+        return ret;
+    }
+
+    @Override
+    public Void visitStatementContinue(SysYParser.StatementContinueContext ctx) {
+        isStatement = true;
+        Void ret = super.visitStatementContinue(ctx);
+        stringBuffer.append("\n");
+        isStatement = false;
+        return ret;
+    }
+
+    @Override
+    public Void visitStatementReturnWithExp(SysYParser.StatementReturnWithExpContext ctx) {
+        isStatement = true;
+        Void ret = super.visitStatementReturnWithExp(ctx);
+        stringBuffer.append("\n");
+        isStatement = false;
+        return ret;
+    }
+
+    @Override
+    public Void visitStatementReturnWithoutExp(SysYParser.StatementReturnWithoutExpContext ctx) {
+        isStatement = true;
+        Void ret = super.visitStatementReturnWithoutExp(ctx);
         stringBuffer.append("\n");
         isStatement = false;
         return ret;

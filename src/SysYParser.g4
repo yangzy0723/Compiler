@@ -44,7 +44,7 @@ initVal
    	;
 
 funcDef
-   	: funcType funcName L_PAREN funcFParams? R_PAREN block
+   	: funcType funcName L_PAREN funcFParams? R_PAREN block		#DefFunc
    	;
 
 funcType
@@ -74,7 +74,7 @@ statement
    	| exp? SEMICOLON											# StatementExp
    	| block														# StatementBlock
    	| IF L_PAREN cond R_PAREN statement (ELSE statement)?		# StatementIf
-   	| WHILE L_PAREN cond R_PAREN statement						# StatmentWhile
+   	| WHILE L_PAREN cond R_PAREN statement						# StatementWhile
    	| BREAK SEMICOLON											# StatementBreak
    	| CONTINUE SEMICOLON										# StatementContinue
    	| RETURN exp SEMICOLON										# StatementReturnWithExp
