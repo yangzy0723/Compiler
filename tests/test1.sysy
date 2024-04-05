@@ -14,9 +14,8 @@ int func() {
             {
             }
         }
-        else if (cond2) {
+        else if (cond2)
             return;
-        }
         else
             c = 1;
     }

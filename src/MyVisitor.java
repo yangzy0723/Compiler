@@ -20,31 +20,31 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
     private boolean isDeclare = false;
     private boolean isIf = false;
     private boolean isWhile = false;
+    private boolean isFunc = false;
 
     @Override
     public Void visitTerminal(TerminalNode node) {
         if(node.getSymbol().getType() != -1) {
-            String s = "";
             String nodeSymbolicName = SysYLexer.VOCABULARY.getSymbolicName(node.getSymbol().getType());
             String nodeLiteralName = node.getText();
             stringBuffer.append("\u001B[0m");
             if(check(nodeSymbolicName, keywords)) {
                 if(!isDeclare)
-                    s = "\u001B[" + SGR_Name.LightCyan + "m" + nodeLiteralName;
+                    stringBuffer.append("\u001B[").append(SGR_Name.LightCyan).append("m").append(nodeLiteralName);
                 else
-                    s = "\u001B[" + SGR_Name.LightCyan + ";" + SGR_Name.Underlined + "m" + nodeLiteralName;
+                    stringBuffer.append("\u001B[").append(SGR_Name.LightCyan).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName);
             }
             else if(check(nodeSymbolicName, operators)) {
                 if(!isDeclare)
-                    s = "\u001B[" + SGR_Name.LightRed + "m" + nodeLiteralName;
+                    stringBuffer.append("\u001B[").append(SGR_Name.LightRed).append("m").append(nodeLiteralName);
                 else
-                    s = "\u001B[" + SGR_Name.LightRed + ";" + SGR_Name.Underlined + "m" + nodeLiteralName;
+                   stringBuffer.append("\u001B[").append(SGR_Name.LightRed).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName);
             }
             else if(check(nodeSymbolicName, integerConst)) {
                 if(!isDeclare)
-                    s = "\u001B[" + SGR_Name.Magenta + "m" + nodeLiteralName;
+                   stringBuffer.append("\u001B[").append(SGR_Name.Magenta).append("m").append(nodeLiteralName);
                 else
-                    s = "\u001B[" + SGR_Name.Magenta + ";" + SGR_Name.Underlined + "m" + nodeLiteralName ;
+                    stringBuffer.append("\u001B[").append(SGR_Name.Magenta).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName);
             }
             else if(check(nodeSymbolicName, lefts)){
                 nowBracketOrder++;
@@ -53,28 +53,39 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
                     step++;
                 }
                 if(Objects.equals(nodeSymbolicName, "L_BRACE") && !isDeclare) {
-                    if(isWhile) {
+                    if(isWhile)
                         stringBuffer.append(" ");
+                    else if(isIf)
+                        stringBuffer.append(" ");
+                    else if(isFunc)
+                        stringBuffer.append(" ");
+                }
+                if(!isDeclare)
+                    stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append(nodeLiteralName);
+                else
+                    stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName);
+                if(Objects.equals(nodeSymbolicName, "L_BRACE") && !isDeclare) {
+                    if(isWhile) {
+                        stringBuffer.append("\n");
                         isWhile = false;
                     }
                     else if(isIf){
-                        stringBuffer.append(" ");
+                        stringBuffer.append("\n");
                         isIf = false;
                     }
-                    else if(isFuncName)
+                    else if(isFunc){
+                        stringBuffer.append("\n");
+                        isFunc = false;
+                    }
+                    else
+                        stringBuffer.append("\n");
                 }
-                if(!isDeclare)
-                    s = "\u001B[" + bracketColor[nowBracketOrder] + "m" + nodeLiteralName;
-                else
-                    s = "\u001B[" + bracketColor[nowBracketOrder] + ";" + SGR_Name.Underlined + "m" + nodeLiteralName;
             }
             else if(check(nodeSymbolicName, rights)){
-                if(Objects.equals(nodeSymbolicName, "R_BRACE") && !isDeclare)
-                    stringBuffer.append("\n");
                 if(!isDeclare)
-                    s = "\u001B[" + bracketColor[nowBracketOrder] + "m" + nodeLiteralName;
+                    stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append(nodeLiteralName);
                 else
-                    s = "\u001B[" + bracketColor[nowBracketOrder] + ";" + SGR_Name.Underlined + "m" + nodeLiteralName;
+                    stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName);
                 nowBracketOrder--;
                 if(nowBracketOrder < 0){
                     nowBracketOrder = 5;
@@ -84,23 +95,19 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
             else{
                 if(isFuncName && Objects.equals(nodeSymbolicName, "IDENT")){
                     if(!isDeclare)
-                        s = "\u001B[" + SGR_Name.LightYellow + "m" + nodeLiteralName;
+                        stringBuffer.append("\u001B[").append(SGR_Name.LightYellow).append("m").append(nodeLiteralName);
                     else
-                        s = "\u001B[" + SGR_Name.LightYellow + ";" + SGR_Name.Underlined + "m" + nodeLiteralName;
+                        stringBuffer.append("\u001B[").append(SGR_Name.LightYellow).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName);
                 }
-                else if(isDeclare) {
-                    s = "\u001B[" + SGR_Name.LightMagenta + ";" + SGR_Name.Underlined + "m" + nodeLiteralName;
-                }
-                else if(isStatement) {
-                    s = "\u001B[" + SGR_Name.White + "m" + nodeLiteralName;
-                }
+                else if(isDeclare)
+                    stringBuffer.append("\u001B[").append(SGR_Name.LightMagenta).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName);
+                else if(isStatement)
+                    stringBuffer.append("\u001B[").append(SGR_Name.White).append("m").append(nodeLiteralName);
                 else
-                    s = nodeLiteralName;
+                    stringBuffer.append(nodeLiteralName);
             }
-            stringBuffer.append(s);
         }
         return this.defaultResult();
-
     }
 
     @Override
@@ -148,17 +155,17 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
     @Override
     public Void visitStatementIf(SysYParser.StatementIfContext ctx) {
         isStatement = true;
+        isIf = true;
         Void ret = super.visitStatementIf(ctx);
-        stringBuffer.append("\n");
         isStatement = false;
         return ret;
     }
 
     @Override
-    public Void visitStatmentWhile(SysYParser.StatmentWhileContext ctx) {
+    public Void visitStatementWhile(SysYParser.StatementWhileContext ctx) {
         isStatement = true;
-        Void ret = super.visitStatmentWhile(ctx);
-        stringBuffer.append("\n");
+        isWhile = true;
+        Void ret = super.visitStatementWhile(ctx);
         isStatement = false;
         return ret;
     }
@@ -196,6 +203,14 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
         Void ret = super.visitStatementReturnWithoutExp(ctx);
         stringBuffer.append("\n");
         isStatement = false;
+        return ret;
+    }
+
+    @Override
+    public Void visitDefFunc(SysYParser.DefFuncContext ctx) {
+        isFunc = true;
+        Void ret = super.visitDefFunc(ctx);
+        stringBuffer.append("\n");
         return ret;
     }
 
