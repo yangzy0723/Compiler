@@ -86,21 +86,21 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
         return this.defaultResult();
     }
 
-    @Override
-    public Void visitFuncName(SysYParser.FuncNameContext ctx) {
-        isFuncName = true;
-        Void ret = super.visitFuncName(ctx);
-        isFuncName = false;
-        return ret;
-    }
-
-    @Override
-    public Void visitStatement(SysYParser.StatementContext ctx) {
-        isStatement = true;
-        Void ret = super.visitStatement(ctx);
-        isStatement = false;
-        return ret;
-    }
+//    @Override
+//    public Void visitFuncName(SysYParser.FuncNameContext ctx) {
+//        isFuncName = true;
+//        Void ret = super.visitFuncName(ctx);
+//        isFuncName = false;
+//        return ret;
+//    }
+//
+//    @Override
+//    public Void visitStatement(SysYParser.StatementContext ctx) {
+//        isStatement = true;
+//        Void ret = super.visitStatement(ctx);
+//        isStatement = false;
+//        return ret;
+//    }
 
     @Override
     public Void visitDecl(SysYParser.DeclContext ctx) {
