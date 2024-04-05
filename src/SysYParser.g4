@@ -4,126 +4,127 @@ options {
     tokenVocab = SysYLexer;
 }
 
+program
+   : compUnit
+   ;
+
 compUnit
-	: ( decl | funcDef )+ EOF
-	;
+   : (funcDef | decl)+ EOF
+   ;
 
 decl
-   	: constDecl
-   	| varDecl
-   	;
+   : constDecl
+   | varDecl
+   ;
 
 constDecl
-   	: CONST bType constDef (COMMA constDef)* SEMICOLON
-   	;
+   : CONST bType constDef (COMMA constDef)* SEMICOLON
+   ;
 
 bType
-   	: INT
-   	;
+   : INT
+   ;
 
 constDef
-   	: IDENT (L_BRACKT constExp R_BRACKT)* ASSIGN constInitVal
-   	;
+   : IDENT (L_BRACKT constExp R_BRACKT)* ASSIGN constInitVal
+   ;
 
 constInitVal
-   	: constExp
-   	| L_BRACE (constInitVal (COMMA constInitVal)*)? R_BRACE
-   	;
+   : constExp
+   | L_BRACE (constInitVal (COMMA constInitVal)* )? R_BRACE
+   ;
 
 varDecl
-   	: bType varDef (COMMA varDef)* SEMICOLON
-   	;
+   : bType varDef (COMMA varDef)* SEMICOLON
+   ;
 
 varDef
-   	: IDENT (L_BRACKT constExp R_BRACKT)* (ASSIGN initVal)?
-   	;
+   : IDENT (L_BRACKT constExp R_BRACKT)*
+   | IDENT (L_BRACKT constExp R_BRACKT)* ASSIGN initVal
+   ;
 
 initVal
-   	: exp
-   	| L_BRACE (initVal (COMMA initVal)*)? R_BRACE
-   	;
+   : exp
+   | L_BRACE (initVal (COMMA initVal)* )? R_BRACE
+   ;
 
 funcDef
-   	: funcType funcName L_PAREN funcFParams? R_PAREN block
-   	;
+   : funcType IDENT L_PAREN (funcFParams)? R_PAREN block
+   ;
 
 funcType
-   	: VOID
-   	| INT
-   	;
+   : VOID
+   | INT
+   ;
 
 funcFParams
-   	: funcFParam (COMMA funcFParam)*
-   	;
+   : funcFParam (COMMA funcFParam)*
+   ;
 
 funcFParam
-   	: bType IDENT (L_BRACKT R_BRACKT (L_BRACKT exp R_BRACKT)*)?
-   	;
+   : bType IDENT (L_BRACKT R_BRACKT (L_BRACKT exp R_BRACKT)* )?
+   ;
 
 block
-   	: L_BRACE blockItem* R_BRACE
-   	;
+   : L_BRACE (blockItem)* R_BRACE
+   ;
 
 blockItem
-   	: decl
-   	| statement
-   	;
+   : decl
+   | stmt
+   ;
 
-statement
-   	: lVal ASSIGN exp SEMICOLON
-   	| exp? SEMICOLON
-   	| block
-   	| IF L_PAREN cond R_PAREN statement (ELSE statement)?
-   	| WHILE L_PAREN cond R_PAREN statement
-   	| BREAK SEMICOLON
-   	| CONTINUE SEMICOLON
-   	| RETURN (exp)? SEMICOLON
-   	;
+stmt
+   : lVal ASSIGN exp SEMICOLON
+   | exp? SEMICOLON
+   | block
+   | IF L_PAREN cond R_PAREN stmt (ELSE stmt)?
+   | WHILE L_PAREN cond R_PAREN stmt
+   | BREAK SEMICOLON
+   | CONTINUE SEMICOLON
+   | RETURN exp? SEMICOLON
+   ;
 
 exp
-   	: L_PAREN exp R_PAREN
-   	| lVal
-   	| number
-   	| funcName L_PAREN funcRParams? R_PAREN
-   	| unaryOp exp
-   	| exp (MUL | DIV | MOD) exp
-   	| exp (PLUS | MINUS) exp
-   	;
+   : L_PAREN exp R_PAREN
+   | lVal
+   | number
+   | IDENT L_PAREN funcRParams? R_PAREN
+   | unaryOp exp
+   | exp (MUL | DIV | MOD) exp
+   | exp (PLUS | MINUS) exp
+   ;
 
 cond
-   	: exp
-   	| cond (LT | GT | LE | GE) cond
-   	| cond (EQ | NEQ) cond
-   	| cond AND cond
-   	| cond OR cond
-   	;
+   : exp
+   | cond (LT | GT | LE | GE) cond
+   | cond (EQ | NEQ) cond
+   | cond AND cond
+   | cond OR cond
+   ;
 
 lVal
-   	: IDENT (L_BRACKT exp R_BRACKT)*
-   	;
+   : IDENT (L_BRACKT exp R_BRACKT)*
+   ;
 
 number
-   	: INTEGER_CONST
-   	;
+   : INTEGER_CONST
+   ;
 
 unaryOp
-   	: PLUS
-   	| MINUS
-   	| NOT
-   	;
+   : PLUS
+   | MINUS
+   | NOT
+   ;
 
 funcRParams
-   	: param (COMMA param)*
-   	;
+   : param (COMMA param)*
+   ;
 
 param
-   	: exp
-  	;
+   : exp
+   ;
 
 constExp
-   	: exp
-   	;
-
-funcName
-	: IDENT
-	;
+   : exp
+   ;
