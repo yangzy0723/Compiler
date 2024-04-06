@@ -294,7 +294,10 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
         passElseIf = false;
         passWhile = false;
 
+        int tmp = needRecover;
+        needRecover = 0;
         Void ret = super.visitBlock(ctx);
+        needRecover = tmp;
 
         return ret;
     }
