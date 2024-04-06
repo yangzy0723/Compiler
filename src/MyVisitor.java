@@ -326,6 +326,8 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
     }
 
     private void newLine(){
+        if(isLeftBraceSpaceElse)
+            isLeftBraceSpaceElse = false;
         if(passIf || passElse || passElseIf || passWhile){
             stringBuffers.add(stringBuffer);
             indentLevels.add(indentLevel);
