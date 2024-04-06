@@ -73,7 +73,7 @@ statement
    	: lVal ASSIGN exp SEMICOLON									# StatementIVal
    	| exp? SEMICOLON											# StatementExp
    	| block														# StatementBlock
-   	| IF L_PAREN cond R_PAREN statement (ELSE statementElse)?		# StatementIf
+   	| IF L_PAREN cond R_PAREN statement (statementElse)?		# StatementIf
    	| WHILE L_PAREN cond R_PAREN statement						# StatementWhile
    	| BREAK SEMICOLON											# StatementBreak
    	| CONTINUE SEMICOLON										# StatementContinue

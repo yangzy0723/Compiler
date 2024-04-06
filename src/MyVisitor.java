@@ -36,6 +36,7 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
     private int needRecover = 0;
     private int lastIfIndent = 0;
 
+
     @Override
     public Void visitTerminal(TerminalNode node) {
         if(node.getSymbol().getType() != -1) {
@@ -209,6 +210,15 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
 
         isLeftBraceSpaceElse = false;
 
+        return ret;
+    }
+
+    @Override
+    public Void visitStatementElse(SysYParser.StatementElseContext ctx) {
+        int tmp = needRecover;
+        needRecover = 0;
+        Void ret = super.visitStatementElse(ctx);
+        needRecover += tmp;
         return ret;
     }
 
