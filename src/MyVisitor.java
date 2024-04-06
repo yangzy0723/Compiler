@@ -34,8 +34,7 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
     private boolean passElseIf = false;
     private boolean passWhile = false;
     private int needRecover = 0;
-    private int lastIfIndent = 0;
-
+    private int lastIfNeedRecover = 0;
 
     @Override
     public Void visitTerminal(TerminalNode node) {
@@ -45,8 +44,6 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
 
             if(check(nodeSymbolicName, keywords)) {
                 if(Objects.equals(nodeSymbolicName, "ELSE")) {
-                    newLine();
-                    System.out.println(lastIfIndent);
                     isLeftBraceSpaceElse = true;
                     passElse = true;
                 }
@@ -200,8 +197,7 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
         else
             passElse = false;
 
-        lastIfIndent = indentLevel;
-
+        lastIfNeedRecover = needRecover;
         isStatement = true;
         isLeftBraceSpace = true;
         Void ret = super.visitStatementIf(ctx);
@@ -215,8 +211,9 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
 
     @Override
     public Void visitStatementElse(SysYParser.StatementElseContext ctx) {
-        int tmp = needRecover;
-        needRecover = 0;
+        int tmp = lastIfNeedRecover;
+        needRecover = needRecover - lastIfNeedRecover;
+        newLine();
         Void ret = super.visitStatementElse(ctx);
         needRecover += tmp;
         return ret;
@@ -367,12 +364,6 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
             }
             stringBuffer = new StringBuilder();
         }
-    }
-
-    private void newLine(int indentLevel){
-        stringBuffers.add(stringBuffer);
-        indentLevels.add(indentLevel);
-        stringBuffer = new StringBuilder();
     }
 
     public void printStringBuffer(){
