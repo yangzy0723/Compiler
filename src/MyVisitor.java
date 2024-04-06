@@ -52,8 +52,9 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
                         passIf = true;
                     passElse = false;
                 }
-                else if(Objects.equals(nodeSymbolicName, "WHILE"))
+                else if(Objects.equals(nodeSymbolicName, "WHILE")) {
                     passWhile = true;
+                }
 
                 if(!isDeclare)
                     stringBuffer.append("\u001B[").append(SGR_Name.LightCyan).append("m").append(nodeLiteralName).append("\u001B[0m");
@@ -104,13 +105,12 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
                             stringBuffer.append(" ");
                             stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append("{").append("\u001B[0m");
                             isLeftBraceSpace = false;
-                            extraIndent = true;
                         }
                         else{
                             newLine();
                             stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append("{").append("\u001B[0m");
-                            extraIndent = true;
                         }
+                        extraIndent = true;
                         indentLevel++;
                     }
                     else
@@ -327,6 +327,7 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
             indentLevels.add(indentLevel);
             stringBuffer = new StringBuilder();
             indentLevel -= needRecover;
+            needRecover = 0;
         }
         else {
             if (extraIndent)
