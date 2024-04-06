@@ -34,6 +34,7 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
     private boolean passElseIf = false;
     private boolean passWhile = false;
     private int needRecover = 0;
+    private int lastIfIndent = 0;
 
     @Override
     public Void visitTerminal(TerminalNode node) {
@@ -197,6 +198,8 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
         else
             passElse = false;
 
+        lastIfIndent = indentLevel;
+
         isStatement = true;
         isLeftBraceSpace = true;
         Void ret = super.visitStatementIf(ctx);
@@ -353,6 +356,12 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
             }
             stringBuffer = new StringBuilder();
         }
+    }
+
+    private void newLine(int indentLevel){
+        stringBuffers.add(stringBuffer);
+        indentLevels.add(indentLevel);
+        stringBuffer = new StringBuilder();
     }
 
     public void printStringBuffer(){
