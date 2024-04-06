@@ -53,6 +53,7 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
                     else
                         passIf = true;
                     passElse = false;
+                    isLeftBraceSpaceElse = false;
                 }
                 else if(Objects.equals(nodeSymbolicName, "WHILE")) {
                     passWhile = true;
@@ -103,14 +104,14 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
                     stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName).append("\u001B[0m");
                 else{
                     if(Objects.equals(nodeSymbolicName, "L_BRACE")){
-                        if(isLeftBraceSpace){
+                        if(isLeftBraceSpaceElse){
+                            stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append("{").append("\u001B[0m");
+                            isLeftBraceSpaceElse = false;
+                        }
+                        else if(isLeftBraceSpace){
                             stringBuffer.append(" ");
                             stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append("{").append("\u001B[0m");
                             isLeftBraceSpace = false;
-                        }
-                        else if(isLeftBraceSpaceElse){
-                            stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append("{").append("\u001B[0m");
-                            isLeftBraceSpaceElse = false;
                         }
                         else{
                             newLine();
@@ -200,8 +201,9 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
         isLeftBraceSpace = true;
         Void ret = super.visitStatementIf(ctx);
         isLeftBraceSpace = false;
-        isLeftBraceSpaceElse = false;
         isStatement = false;
+
+        isLeftBraceSpaceElse = false;
 
         return ret;
     }
