@@ -5,11 +5,13 @@ import java.util.Stack;
 import java.util.Vector;
 
 public class MyVisitor extends SysYParserBaseVisitor<Void>{
-    private StringBuilder stringBuffer = new StringBuilder();
     private int indentLevel = 0;
+    private int needRecover = 0;
+    private boolean extraIndent = false;
+    private StringBuilder stringBuffer = new StringBuilder();
+    private final Stack<Integer> lastIfNeedRecovers = new Stack<>();
     private final Vector<StringBuilder> stringBuffers = new Vector<>();
     private final Vector<Integer> indentLevels = new Vector<>();
-    private boolean extraIndent = false;
 
     public static int[] bracketColor = {SGR_Name.LightRed, SGR_Name.LightGreen, SGR_Name.LightYellow, SGR_Name.LightBlue, SGR_Name.LightMagenta, SGR_Name.LightCyan};
     public static String[] lefts = {"L_PAREN", "L_BRACKT", "L_BRACE"};
@@ -34,8 +36,6 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
     private boolean passElse = false;
     private boolean passElseIf = false;
     private boolean passWhile = false;
-    private int needRecover = 0;
-    private final Stack<Integer> lastIfNeedRecovers = new Stack<>();
 
     @Override
     public Void visitTerminal(TerminalNode node) {
@@ -64,6 +64,7 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
                     stringBuffer.append("\u001B[").append(SGR_Name.LightCyan).append("m").append(nodeLiteralName).append("\u001B[0m");
                 else
                     stringBuffer.append("\u001B[").append(SGR_Name.LightCyan).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName).append("\u001B[0m");
+
                 if(check(nodeSymbolicName, keywordsSpace)){
                     if(!(Objects.equals(nodeSymbolicName, "RETURN") && isBreakWithoutExp))
                         stringBuffer.append(" ");
@@ -238,8 +239,7 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
     public Void visitStatementBreak(SysYParser.StatementBreakContext ctx) {
         newLine();
 
-        Void ret = super.visitStatementBreak(ctx);
-        return ret;
+        return super.visitStatementBreak(ctx);
     }
 
     @Override
