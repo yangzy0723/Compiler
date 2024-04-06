@@ -1,6 +1,7 @@
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.Objects;
+import java.util.Stack;
 import java.util.Vector;
 
 public class MyVisitor extends SysYParserBaseVisitor<Void>{
@@ -34,7 +35,7 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
     private boolean passElseIf = false;
     private boolean passWhile = false;
     private int needRecover = 0;
-    private int lastIfNeedRecover = 0;
+    private final Stack<Integer> lastIfNeedRecovers = new Stack<>();
 
     @Override
     public Void visitTerminal(TerminalNode node) {
@@ -197,12 +198,13 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
         else
             passElse = false;
 
-        lastIfNeedRecover = needRecover;
+        lastIfNeedRecovers.push(needRecover);
         isStatement = true;
         isLeftBraceSpace = true;
         Void ret = super.visitStatementIf(ctx);
         isLeftBraceSpace = false;
         isStatement = false;
+        lastIfNeedRecovers.pop();
 
         isLeftBraceSpaceElse = false;
 
@@ -211,11 +213,11 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
 
     @Override
     public Void visitStatementElse(SysYParser.StatementElseContext ctx) {
-        int tmp = lastIfNeedRecover;
+        int lastIfNeedRecover = lastIfNeedRecovers.peek();
         needRecover = needRecover - lastIfNeedRecover;
         newLine();
         Void ret = super.visitStatementElse(ctx);
-        needRecover += tmp;
+        needRecover += lastIfNeedRecover;
         return ret;
     }
 
