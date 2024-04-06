@@ -71,22 +71,19 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
                 }
             }
             else if(check(nodeSymbolicName, operators)) {
-                if(check(nodeSymbolicName, operatorsSpace)){
-                    if(!isUnaryOp)
-                        stringBuffer.append(" ");
-                }
+                if(!isUnaryOp && check(nodeSymbolicName, operatorsSpace))
+                    stringBuffer.append(" ");
+
                 if(!isDeclare)
                     stringBuffer.append("\u001B[").append(SGR_Name.LightRed).append("m").append(nodeLiteralName).append("\u001B[0m");
                 else
                     stringBuffer.append("\u001B[").append(SGR_Name.LightRed).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName).append("\u001B[0m");
-                if(check(nodeSymbolicName, operatorsSpace)){
-                    if(!isUnaryOp)
-                        stringBuffer.append(" ");
-                    else
-                        isUnaryOp = false;
-                }
 
-                else if(Objects.equals(nodeSymbolicName, "COMMA"))
+                if(!isUnaryOp && check(nodeSymbolicName, operatorsSpace))
+                        stringBuffer.append(" ");
+                isUnaryOp = false;
+
+                if(Objects.equals(nodeSymbolicName, "COMMA"))
                     stringBuffer.append(" ");
             }
             else if(check(nodeSymbolicName, integerConst)) {
