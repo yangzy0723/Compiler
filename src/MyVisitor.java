@@ -45,6 +45,7 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
             if(check(nodeSymbolicName, keywords)) {
                 if(Objects.equals(nodeSymbolicName, "ELSE")) {
                     newLine();
+                    System.out.println(lastIfIndent);
                     isLeftBraceSpaceElse = true;
                     passElse = true;
                 }
