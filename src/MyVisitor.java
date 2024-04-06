@@ -29,7 +29,7 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
     private boolean isStatement = false;
     private boolean isDeclare = false;
     private boolean isLeftBraceSpace = false;
-    private boolean isLeftBraceSpaceElse = false;
+    private boolean isLeftBraceSpaceElse = false;   //用于判断else {这种情况，else右边一个空格，{左边一个空格
     private boolean isBreakWithoutExp = false;
     private boolean isUnaryOp = false;
     private boolean passIf = false;
@@ -44,11 +44,7 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
             String nodeLiteralName = node.getText();
 
             if(check(nodeSymbolicName, keywords)) {
-                if(Objects.equals(nodeSymbolicName, "ELSE")) {
-                    isLeftBraceSpaceElse = true;
-                    passElse = true;
-                }
-                else if(Objects.equals(nodeSymbolicName, "IF")) {
+                if(Objects.equals(nodeSymbolicName, "IF")) {
                     if(passElse)
                         passElseIf = true;
                     else
@@ -56,9 +52,12 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
                     passElse = false;
                     isLeftBraceSpaceElse = false;
                 }
-                else if(Objects.equals(nodeSymbolicName, "WHILE")) {
-                    passWhile = true;
+                else if(Objects.equals(nodeSymbolicName, "ELSE")) {
+                    isLeftBraceSpaceElse = true;
+                    passElse = true;
                 }
+                else if(Objects.equals(nodeSymbolicName, "WHILE"))
+                    passWhile = true;
 
                 if(!isDeclare)
                     stringBuffer.append("\u001B[").append(SGR_Name.LightCyan).append("m").append(nodeLiteralName).append("\u001B[0m");
