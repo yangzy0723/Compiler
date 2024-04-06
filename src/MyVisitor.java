@@ -28,30 +28,40 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
     private boolean isLeftBraceSpace = false;
     private boolean isBreakWithoutExp = false;
     private boolean isUnaryOp = false;
+    private boolean passIf = false;
     private boolean passElse = false;
+    private boolean passElseIf = false;
+    private boolean passWhile = false;
+    private int needRecover = 0;
 
     @Override
     public Void visitTerminal(TerminalNode node) {
         if(node.getSymbol().getType() != -1) {
             String nodeSymbolicName = SysYLexer.VOCABULARY.getSymbolicName(node.getSymbol().getType());
             String nodeLiteralName = node.getText();
-            stringBuffer.append("\u001B[0m");
 
             if(check(nodeSymbolicName, keywords)) {
                 if(Objects.equals(nodeSymbolicName, "ELSE")) {
                     newLine();
                     passElse = true;
                 }
-                else if(Objects.equals(nodeSymbolicName, "IF"))
+                else if(Objects.equals(nodeSymbolicName, "IF")) {
+                    if(passElse)
+                        passElseIf = true;
+                    else
+                        passIf = true;
                     passElse = false;
+                }
+                else if(Objects.equals(nodeSymbolicName, "WHILE"))
+                    passWhile = true;
+
                 if(!isDeclare)
-                    stringBuffer.append("\u001B[").append(SGR_Name.LightCyan).append("m").append(nodeLiteralName);
+                    stringBuffer.append("\u001B[").append(SGR_Name.LightCyan).append("m").append(nodeLiteralName).append("\u001B[0m");
                 else
-                    stringBuffer.append("\u001B[").append(SGR_Name.LightCyan).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName);
+                    stringBuffer.append("\u001B[").append(SGR_Name.LightCyan).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName).append("\u001B[0m");
                 if(check(nodeSymbolicName, keywordsSpace)){
-                    if(!(Objects.equals(nodeSymbolicName, "RETURN") && isBreakWithoutExp)){
+                    if(!(Objects.equals(nodeSymbolicName, "RETURN") && isBreakWithoutExp))
                         stringBuffer.append(" ");
-                    }
                 }
             }
             else if(check(nodeSymbolicName, operators)) {
@@ -60,9 +70,9 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
                         stringBuffer.append(" ");
                 }
                 if(!isDeclare)
-                    stringBuffer.append("\u001B[").append(SGR_Name.LightRed).append("m").append(nodeLiteralName);
+                    stringBuffer.append("\u001B[").append(SGR_Name.LightRed).append("m").append(nodeLiteralName).append("\u001B[0m");
                 else
-                    stringBuffer.append("\u001B[").append(SGR_Name.LightRed).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName);
+                    stringBuffer.append("\u001B[").append(SGR_Name.LightRed).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName).append("\u001B[0m");
                 if(check(nodeSymbolicName, operatorsSpace)){
                     if(!isUnaryOp)
                         stringBuffer.append(" ");
@@ -75,9 +85,9 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
             }
             else if(check(nodeSymbolicName, integerConst)) {
                 if(!isDeclare)
-                   stringBuffer.append("\u001B[").append(SGR_Name.Magenta).append("m").append(nodeLiteralName);
+                   stringBuffer.append("\u001B[").append(SGR_Name.Magenta).append("m").append(nodeLiteralName).append("\u001B[0m");
                 else
-                    stringBuffer.append("\u001B[").append(SGR_Name.Magenta).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName);
+                    stringBuffer.append("\u001B[").append(SGR_Name.Magenta).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName).append("\u001B[0m");
             }
             else if(check(nodeSymbolicName, lefts)){
                 nowBracketOrder++;
@@ -87,34 +97,35 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
                 }
 
                 if(isDeclare)
-                    stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName);
+                    stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName).append("\u001B[0m");
                 else{
                     if(Objects.equals(nodeSymbolicName, "L_BRACE")){
                         if(isLeftBraceSpace){
-                            stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append(" {");
+                            stringBuffer.append(" ");
+                            stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append("{").append("\u001B[0m");
                             isLeftBraceSpace = false;
                             extraIndent = true;
                         }
                         else{
                             newLine();
-                            stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append("{");
+                            stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append("{").append("\u001B[0m");
                             extraIndent = true;
                         }
                         indentLevel++;
                     }
                     else
-                        stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append(nodeLiteralName);
+                        stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append(nodeLiteralName).append("\u001B[0m");
                 }
             }
             else if(check(nodeSymbolicName, rights)){
                 if(isDeclare)
-                    stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName);
+                    stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName).append("\u001B[0m");
                 else{
                     if(Objects.equals(nodeSymbolicName, "R_BRACE")) {
                         newLine();
                         indentLevel--;
                     }
-                    stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append(nodeLiteralName);
+                    stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append(nodeLiteralName).append("\u001B[0m");
                 }
 
                 nowBracketOrder--;
@@ -126,14 +137,14 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
             else{
                 if(isFuncName && Objects.equals(nodeSymbolicName, "IDENT")){
                     if(!isDeclare)
-                        stringBuffer.append("\u001B[").append(SGR_Name.LightYellow).append("m").append(nodeLiteralName);
+                        stringBuffer.append("\u001B[").append(SGR_Name.LightYellow).append("m").append(nodeLiteralName).append("\u001B[0m");
                     else
-                        stringBuffer.append("\u001B[").append(SGR_Name.LightYellow).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName);
+                        stringBuffer.append("\u001B[").append(SGR_Name.LightYellow).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName).append("\u001B[0m");
                 }
                 else if(isDeclare)
-                    stringBuffer.append("\u001B[").append(SGR_Name.LightMagenta).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName);
+                    stringBuffer.append("\u001B[").append(SGR_Name.LightMagenta).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName).append("\u001B[0m");
                 else if(isStatement)
-                    stringBuffer.append("\u001B[").append(SGR_Name.White).append("m").append(nodeLiteralName);
+                    stringBuffer.append("\u001B[").append(SGR_Name.White).append("m").append(nodeLiteralName).append("\u001B[0m");
                 else
                     stringBuffer.append(nodeLiteralName);
             }
@@ -278,8 +289,10 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
 
     @Override
     public Void visitBlock(SysYParser.BlockContext ctx) {
-        if(passElse)
-            passElse = false;
+        passIf = false;
+        passElse = false;
+        passElseIf = false;
+        passWhile = false;
 
         Void ret = super.visitBlock(ctx);
 
@@ -298,15 +311,34 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
     }
 
     private void newLine(){
-        if(extraIndent)
-            indentLevel--;
-        stringBuffers.add(stringBuffer);
-        indentLevels.add(indentLevel);
-        if(extraIndent){
-            extraIndent = false;
+        if(passIf || passElse || passElseIf || passWhile){
+            stringBuffers.add(stringBuffer);
+            indentLevels.add(indentLevel);
+            stringBuffer = new StringBuilder();
             indentLevel++;
+            needRecover++;
+            passIf = false;
+            passElse = false;
+            passElseIf = false;
+            passWhile = false;
         }
-        stringBuffer = new StringBuilder();
+        else if(needRecover > 0){
+            stringBuffers.add(stringBuffer);
+            indentLevels.add(indentLevel);
+            stringBuffer = new StringBuilder();
+            indentLevel -= needRecover;
+        }
+        else {
+            if (extraIndent)
+                indentLevel--;
+            stringBuffers.add(stringBuffer);
+            indentLevels.add(indentLevel);
+            if (extraIndent) {
+                extraIndent = false;
+                indentLevel++;
+            }
+            stringBuffer = new StringBuilder();
+        }
     }
 
     public void printStringBuffer(){
