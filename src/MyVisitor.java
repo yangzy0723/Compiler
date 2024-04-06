@@ -26,6 +26,7 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
     private boolean isStatement = false;
     private boolean isDeclare = false;
     private boolean isLeftBraceSpace = false;
+    private boolean isLeftBraceSpaceElse = false;
     private boolean isBreakWithoutExp = false;
     private boolean isUnaryOp = false;
     private boolean passIf = false;
@@ -43,6 +44,7 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
             if(check(nodeSymbolicName, keywords)) {
                 if(Objects.equals(nodeSymbolicName, "ELSE")) {
                     newLine();
+                    isLeftBraceSpaceElse = true;
                     passElse = true;
                 }
                 else if(Objects.equals(nodeSymbolicName, "IF")) {
@@ -105,6 +107,10 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
                             stringBuffer.append(" ");
                             stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append("{").append("\u001B[0m");
                             isLeftBraceSpace = false;
+                        }
+                        else if(isLeftBraceSpaceElse){
+                            stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append("{").append("\u001B[0m");
+                            isLeftBraceSpaceElse = false;
                         }
                         else{
                             newLine();
@@ -194,6 +200,7 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
         isLeftBraceSpace = true;
         Void ret = super.visitStatementIf(ctx);
         isLeftBraceSpace = false;
+        isLeftBraceSpaceElse = false;
         isStatement = false;
 
         return ret;
@@ -294,8 +301,11 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
         passElseIf = false;
         passWhile = false;
 
-        int tmp = needRecover;
-        needRecover = 0;
+        int tmp = 0;
+        if(isLeftBraceSpace) {
+            tmp = needRecover;
+            needRecover = 0;
+        }
         Void ret = super.visitBlock(ctx);
         needRecover = tmp;
 
@@ -352,8 +362,12 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
             indentLevels.remove(0);
         }
         for(int i = 0; i < stringBuffers.size(); i++) {
+            StringBuilder sb = stringBuffers.get(i);
+            while (sb.length() > 0 && sb.charAt(sb.length() - 1) == ' ') {
+                sb.deleteCharAt(sb.length() - 1);
+            }
             dealIndent(indentLevels.get(i));
-            System.out.println(stringBuffers.get(i));
+            System.out.println(sb);
         }
     }
 }
