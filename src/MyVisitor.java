@@ -321,10 +321,6 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
         return false;
     }
 
-    private void dealIndent(int indentLevel){
-        System.out.print(" ".repeat(Math.max(0, indentLevel * 4)));
-    }
-
     private void newLine(){
         if(isLeftBraceSpaceElse)
             isLeftBraceSpaceElse = false;
@@ -374,4 +370,9 @@ public class MyVisitor extends SysYParserBaseVisitor<Void>{
             System.out.println(sb);
         }
     }
+
+    private void dealIndent(int indentLevel){
+        System.out.print(" ".repeat(Math.max(0, indentLevel * 4)));
+    }
+
 }
