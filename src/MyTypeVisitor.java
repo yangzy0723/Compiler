@@ -312,13 +312,11 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
         return check(left, right, lineNumber);
     }
     private Type check(Type leftType, Type rightType, int lineNumber){
-        if (leftType instanceof Error || rightType instanceof Error)
-            return new Error();
-        if (!leftType.equals(rightType) || !(leftType instanceof Int)) {
+        if(leftType.equals(rightType) && (leftType instanceof Int))
+            return leftType;
+        if (!leftType.equals(rightType) || !(leftType instanceof Int))
             OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_OPERATION.ordinal(), lineNumber);
-            return new Error();
-        }
-        return leftType;
+        return new Error();
     }
 
     @Override

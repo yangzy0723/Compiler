@@ -1,5 +1,7 @@
-const int a[5][5] = 5;
-int a(int i, int i, int i){
-	a = 5;
-	return 0;
+void a(){
+	return ;
+}
+
+int main(){
+	return 3 * a();
 }
