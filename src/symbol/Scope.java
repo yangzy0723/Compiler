@@ -14,8 +14,6 @@ public class Scope {
     public Scope(Scope scope) {
         this.parent = scope;
         this.symbolTable = new LinkedHashMap<>();
-        define(new BaseSymbol("int", new Int()));
-        define(new BaseSymbol("void", new Void()));
     }
 
     public void define(Symbol symbol) {

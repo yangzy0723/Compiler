@@ -2,11 +2,11 @@ package symbol;
 
 import symbol.type.Type;
 
-public class BaseSymbol implements Symbol {
+public class VarSymbol implements Symbol {
     public Type type;
     public String name;
 
-    public BaseSymbol(String name, Type type) {
+    public VarSymbol(String name, Type type) {
         this.type = type;
         this.name = name;
     }
