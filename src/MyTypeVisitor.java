@@ -1,6 +1,7 @@
 import org.antlr.v4.runtime.tree.TerminalNode;
 import symbol.*;
 import symbol.Error;
+import symbol.Void;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -205,13 +206,39 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
     }
 
     @Override
+    public Type visitStatementReturnWithoutExp(SysYParser.StatementReturnWithoutExpContext ctx) {
+        Scope scope = curScope;
+        while (!(scope instanceof FunctionSymbol))
+            scope = scope.parent;
+        FunctionSymbol functionSymbol = (FunctionSymbol) scope;
+        Type returnType = ((Function) functionSymbol.getType()).returnType;
+        if(!(returnType instanceof Void)){
+            OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_RETURN_VALUE.ordinal(), ctx.getStart().getLine());
+            return new Error();
+        }
+        return null;
+    }
+
+    @Override
     public Type visitStatementReturnWithExp(SysYParser.StatementReturnWithExpContext ctx) {
         Type subType = visit(ctx.exp());
         if (!(subType instanceof Error)) {
-            // 函数返回值一定是int类型
-            if (!(subType instanceof Int)) {
-                OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_RETURN_VALUE.ordinal(), ctx.getStart().getLine());
-                return new Error();
+            Scope scope = curScope;
+            while (!(scope instanceof FunctionSymbol))
+                scope = scope.parent;
+            FunctionSymbol functionSymbol = (FunctionSymbol) scope;
+            Type returnType = ((Function) functionSymbol.getType()).returnType;
+            if(returnType instanceof Int){
+                if(!(subType instanceof Int)){
+                    OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_RETURN_VALUE.ordinal(), ctx.getStart().getLine());
+                    return new Error();
+                }
+            }
+            if(returnType instanceof Void){
+                if(!(subType instanceof Void)){
+                    OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_RETURN_VALUE.ordinal(), ctx.getStart().getLine());
+                    return new Error();
+                }
             }
         }
         return null;
