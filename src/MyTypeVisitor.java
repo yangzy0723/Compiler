@@ -368,6 +368,8 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
             if (globalScope.getSymbolFromName(varName) != null)
                 return true;
         Scope parentScope = curScope.parent;
+        if (parentScope instanceof FunctionSymbol)
+            parentScope = parentScope.parent;
         return curScope.getSymbolFromName(varName) != parentScope.getSymbolFromName(varName);
     }
 }
