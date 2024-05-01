@@ -146,49 +146,49 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
         return null;
     }
 
-    @Override
-    public Type visitExpressionFunc(SysYParser.ExpressionFuncContext ctx) {
-        Symbol symbol = curScope.getSymbolFromName(ctx.funcName().getText());
-
-        if (symbol == null) {
-            OutputHelper.printSemanticError(ErrorType.UNDEFINED_FUNCTION.ordinal(), ctx.funcName().getStart().getLine());
-            return new Error();
-        }
-
-        if (symbol instanceof FunctionSymbol) {
-            FunctionSymbol funcSymbol = (FunctionSymbol) symbol;
-            Function funcType = (Function) funcSymbol.getType();
-            List<Type> paramTypes = funcType.paramsType;
-            if (ctx.funcRParams() == null) {
-                if (!paramTypes.isEmpty()) {
-                    OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_PARAMETERS.ordinal(), ctx.funcName().getStart().getLine());
-                    return new Error();
-                }
-            }
-            else {
-                List<SysYParser.ParamContext> realParams = ctx.funcRParams().param();
-                if (realParams.size() != paramTypes.size()) {
-                    OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_PARAMETERS.ordinal(), ctx.funcName().getStart().getLine());
-                    return new Error();
-                }
-                int argc = realParams.size();
-                for (int i = 0; i < argc; i ++) {
-                    // 底下就出错了, 默认对的类型
-                    Type subType = visit(realParams.get(i).exp());
-                    if (subType instanceof Error)
-                        continue;
-                    Type expectedType = paramTypes.get(i);
-                    if (!expectedType.equals(subType)) {
-                        OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_PARAMETERS.ordinal(), ctx.funcName().getStart().getLine());
-                        return new Error();
-                    }
-                }
-            }
-            return funcType.returnType;
-        }
-        OutputHelper.printSemanticError(ErrorType.VARIABLE_NOT_CALLABLE.ordinal(), ctx.funcName().getStart().getLine());
-        return new Error();
-    }
+//    @Override
+//    public Type visitExpressionFunc(SysYParser.ExpressionFuncContext ctx) {
+//        Symbol symbol = curScope.getSymbolFromName(ctx.funcName().getText());
+//
+//        if (symbol == null) {
+//            OutputHelper.printSemanticError(ErrorType.UNDEFINED_FUNCTION.ordinal(), ctx.funcName().getStart().getLine());
+//            return new Error();
+//        }
+//
+//        if (symbol instanceof FunctionSymbol) {
+//            FunctionSymbol funcSymbol = (FunctionSymbol) symbol;
+//            Function funcType = (Function) funcSymbol.getType();
+//            List<Type> paramTypes = funcType.paramsType;
+//            if (ctx.funcRParams() == null) {
+//                if (!paramTypes.isEmpty()) {
+//                    OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_PARAMETERS.ordinal(), ctx.funcName().getStart().getLine());
+//                    return new Error();
+//                }
+//            }
+//            else {
+//                List<SysYParser.ParamContext> realParams = ctx.funcRParams().param();
+//                if (realParams.size() != paramTypes.size()) {
+//                    OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_PARAMETERS.ordinal(), ctx.funcName().getStart().getLine());
+//                    return new Error();
+//                }
+//                int argc = realParams.size();
+//                for (int i = 0; i < argc; i ++) {
+//                    // 底下就出错了, 默认对的类型
+//                    Type subType = visit(realParams.get(i).exp());
+//                    if (subType instanceof Error)
+//                        continue;
+//                    Type expectedType = paramTypes.get(i);
+//                    if (!expectedType.equals(subType)) {
+//                        OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_PARAMETERS.ordinal(), ctx.funcName().getStart().getLine());
+//                        return new Error();
+//                    }
+//                }
+//            }
+//            return funcType.returnType;
+//        }
+//        OutputHelper.printSemanticError(ErrorType.VARIABLE_NOT_CALLABLE.ordinal(), ctx.funcName().getStart().getLine());
+//        return new Error();
+//    }
 
     @Override
     public Type visitTerminal(TerminalNode node) {
