@@ -96,11 +96,11 @@ exp
    	;
 
 cond
-   	: exp
-   	| cond (LT | GT | LE | GE) cond
-   	| cond (EQ | NEQ) cond
-   	| cond AND cond
-   	| cond OR cond
+   	: exp														# CondExp
+   	| cond (LT | GT | LE | GE) cond								# CondCompare
+   	| cond (EQ | NEQ) cond										# CondEqual
+   	| cond AND cond												# CondAnd
+   	| cond OR cond												# CondOr
    	;
 
 lVal

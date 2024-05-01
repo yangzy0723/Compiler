@@ -11,8 +11,8 @@ public class Main {
     public static void main(String[] args) throws IOException {
         if (args.length < 1)
             System.err.println("input path is required");
-        //String source = "tests/test1.sysy";
-        String source = args[0];
+        String source = "tests/test1.sysy";
+        //String source = args[0];
         CharStream input = CharStreams.fromFileName(source);
         SysYLexer sysYLexer = new SysYLexer(input);
         sysYLexer.removeErrorListeners();
@@ -31,13 +31,16 @@ public class Main {
         sysYParser.addErrorListener(myParserErrorListener);
 
         ParseTree tree = sysYParser.compUnit();
-        MyVisitor myVisitor = new MyVisitor();
-        myVisitor.visit(tree);
+//        MyColorAndFormatVisitor myColorAndFormatVisitor = new MyColorAndFormatVisitor();
+//        myColorAndFormatVisitor.visit(tree);
 
-        if(myParserErrorListener.isParserError())
-            myParserErrorListener.printParserErrorInformation();
-        else
-            myVisitor.printStringBuffer();
+//        if(myParserErrorListener.isParserError())
+//            myParserErrorListener.printParserErrorInformation();
+//        else
+//            myColorAndFormatVisitor.printStringBuffer();
+
+        MyTypeVisitor myTypeVisitor = new MyTypeVisitor();
+        myTypeVisitor.visit(tree);
     }
 
     private static void printSysYTokenInformation(Token t){

@@ -4,7 +4,7 @@ import java.util.Objects;
 import java.util.Stack;
 import java.util.Vector;
 
-public class MyVisitor extends SysYParserBaseVisitor<Void>{
+public class MyColorAndFormatVisitor extends SysYParserBaseVisitor<Void>{
     private int indentLevel = 0;
     private int needRecover = 0;
     private boolean extraIndent = false;
