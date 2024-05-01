@@ -106,22 +106,33 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
     public Type visitDefFunc(SysYParser.DefFuncContext ctx) {
         Type returnType = getPrimitiveType(ctx.funcType().getText());
         String funcName = ctx.funcName().getText();
+
         if (globalScope.getSymbolFromName(funcName) != null) {
             error = true;
             OutputHelper.printSemanticError(ERROR_TYPE.REDEFINED_FUNCTION.ordinal(), ctx.getStart().getLine());
             return new Undefined();
         }
+
         List<Type> paramsType = new ArrayList<>();
         List<VarSymbol> paramSymbols = new ArrayList<>();
+
         if (ctx.funcFParams() != null) {
             for (SysYParser.FuncFParamContext param : ctx.funcFParams().funcFParam()) {
                 Type paramType = getPrimitiveType(param.bType().getText());
                 String paramName = param.IDENT().getText();
-                Type paramArrayType = createArrayType(paramType, param.R_BRACKT().size());
-                paramSymbols.add(new VarSymbol(paramName, paramArrayType));
-                paramsType.add(paramArrayType);
+
+                if (param.R_BRACKT().isEmpty())
+                    paramSymbols.add(new VarSymbol(paramName, paramType));
+                else {
+                    Type currentType = paramType;
+                    int dimension = param.R_BRACKT().size();
+                    for (int i = 0; i < dimension; i++)
+                        currentType = new Array(currentType);
+                    paramSymbols.add(new VarSymbol(paramName, currentType));
+                }
             }
         }
+
         Function function = new Function(returnType, paramsType);
         FunctionSymbol funcSymbol = new FunctionSymbol(funcName, function, curScope);
         globalScope.define(funcSymbol);
@@ -130,10 +141,12 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
             if (checkRedefined(param.getName())) {
                 error = true;
                 OutputHelper.printSemanticError(ERROR_TYPE.REDEFINED_VARIABLE.ordinal(), ctx.getStart().getLine());
-            } else
+            } else {
+                paramsType.add(param.getType());
                 funcSymbol.define(param);
-
+            }
         }
+        // Function有两层作用域
         visitBlock(ctx.block());
         curScope = curScope.parent;
         return null;
@@ -325,13 +338,6 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
             OutputHelper.printSemanticError(ERROR_TYPE.INCOMPATIBLE_OPERATION.ordinal(), lineNumber);
         error = true;
         return new Undefined();
-    }
-
-    private Type createArrayType(Type baseType, int dimension) {
-        Type currentType = baseType;
-        for (int i = 0; i < dimension; i++)
-            currentType = new Array(currentType);
-        return currentType;
     }
 
     private boolean checkRedefined(String varName) {
