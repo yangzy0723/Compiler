@@ -3,7 +3,6 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
-import symbol.Error;
 
 
 import java.io.IOException;
@@ -42,7 +41,7 @@ public class Main {
 
         MyTypeVisitor myTypeVisitor = new MyTypeVisitor();
         myTypeVisitor.visit(tree);
-        if(Error.errorCount == 0)
+        if(MyTypeVisitor.error)
             System.err.println("No semantic errors in the program!");
     }
 

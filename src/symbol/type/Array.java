@@ -1,4 +1,4 @@
-package symbol;
+package symbol.type;
 
 public class Array implements Type {
     public Type contained;

@@ -1,5 +1,9 @@
 package symbol;
 
+import symbol.type.Int;
+import symbol.type.Type;
+import symbol.type.Void;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 

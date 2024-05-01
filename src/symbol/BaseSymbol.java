@@ -1,5 +1,7 @@
 package symbol;
 
+import symbol.type.Type;
+
 public class BaseSymbol implements Symbol {
     public Type type;
     public String name;

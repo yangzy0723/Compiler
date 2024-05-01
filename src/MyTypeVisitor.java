@@ -1,12 +1,14 @@
 import org.antlr.v4.runtime.tree.TerminalNode;
 import symbol.*;
-import symbol.Error;
-import symbol.Void;
+import symbol.type.*;
+import symbol.type.Void;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
+    public static boolean error;
+
     private final Scope globalScope = new Scope(null);
     private Scope curScope = globalScope;
 
@@ -36,15 +38,17 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
                     currentType = new Array(currentType);
                 varSymbol = new BaseSymbol(varName, currentType);
             }
-            if (checkVariableRedefined(varName)) {
+            if (checkRedefined(varName)) {
                 OutputHelper.printSemanticError(ErrorType.REDEFINED_VARIABLE.ordinal(), ctx.getStart().getLine());
                 hasError = true;
             }
             else
                 curScope.define(varSymbol);
         }
-        if (hasError)
-            return new Error();
+        if (hasError) {
+            error = true;
+            return new Undefined();
+        }
         return null;
     }
 
@@ -74,7 +78,7 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
                     currentType = new Array(currentType);
                 varSymbol = new BaseSymbol(varName, currentType);
             }
-            if (checkVariableRedefined(varName)) {
+            if (checkRedefined(varName)) {
                 OutputHelper.printSemanticError(ErrorType.REDEFINED_VARIABLE.ordinal(), ctx.getStart().getLine());
                 hasError = true;
             }
@@ -82,8 +86,10 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
                 curScope.define(varSymbol);
 
         }
-        if (hasError)
-            return new Error();
+        if (hasError) {
+            error = true;
+            return new Undefined();
+        }
         return null;
     }
 
@@ -94,7 +100,8 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
 
         if (globalScope.getSymbolFromName(funcName) != null) {
             OutputHelper.printSemanticError(ErrorType.REDEFINED_FUNCTION.ordinal(), ctx.getStart().getLine());
-            return new Error();
+            error = true;
+            return new Undefined();
         }
 
         List<Type> paramsType = new ArrayList<>();
@@ -123,9 +130,9 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
         curScope = funcSymbol;
 
         for (BaseSymbol param : paramSymbols) {
-            if (checkVariableRedefined(param.getName())) {
+            if (checkRedefined(param.getName())) {
                 OutputHelper.printSemanticError(ErrorType.REDEFINED_VARIABLE.ordinal(), ctx.getStart().getLine());
-                Error.errorCount++;
+                error = true;
             }
             else {
                 paramsType.add(param.getType());
@@ -152,7 +159,8 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
 
         if (symbol == null) {
             OutputHelper.printSemanticError(ErrorType.UNDEFINED_FUNCTION.ordinal(), ctx.funcName().getStart().getLine());
-            return new Error();
+            error = true;
+            return new Undefined();
         }
 
         if (symbol instanceof FunctionSymbol) {
@@ -162,14 +170,16 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
             if (ctx.funcRParams() == null) {
                 if (!paramTypes.isEmpty()) {
                     OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_PARAMETERS.ordinal(), ctx.funcName().getStart().getLine());
-                    return new Error();
+                    error = true;
+                    return new Undefined();
                 }
             }
             else {
                 List<SysYParser.ParamContext> realParams = ctx.funcRParams().param();
                 if (realParams.size() != paramTypes.size()) {
                     OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_PARAMETERS.ordinal(), ctx.funcName().getStart().getLine());
-                    return new Error();
+                    error = true;
+                    return new Undefined();
                 }
                 int argc = realParams.size();
                 for (int i = 0; i < argc; i ++) {
@@ -180,14 +190,16 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
                     Type expectedType = paramTypes.get(i);
                     if (!expectedType.equals(subType)) {
                         OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_PARAMETERS.ordinal(), ctx.funcName().getStart().getLine());
-                        return new Error();
+                        error = true;
+                        return new Undefined();
                     }
                 }
             }
             return funcType.returnType;
         }
         OutputHelper.printSemanticError(ErrorType.VARIABLE_NOT_CALLABLE.ordinal(), ctx.funcName().getStart().getLine());
-        return new Error();
+        error = true;
+        return new Undefined();
     }
 
     @Override
@@ -197,7 +209,8 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
             Symbol symbol = curScope.getSymbolFromName(name);
             if (symbol == null) {
                 OutputHelper.printSemanticError(ErrorType.UNDECLARED_VARIABLE.ordinal(), node.getSymbol().getLine());
-                return new Error();
+                error = true;
+                return new Undefined();
             }
             return symbol.getType();
         }
@@ -215,7 +228,8 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
         Type returnType = ((Function) functionSymbol.getType()).returnType;
         if(!(returnType instanceof Void)){
             OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_RETURN_VALUE.ordinal(), ctx.getStart().getLine());
-            return new Error();
+            error = true;
+            return new Undefined();
         }
         return null;
     }
@@ -232,13 +246,15 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
             if(returnType instanceof Int){
                 if(!(subType instanceof Int)){
                     OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_RETURN_VALUE.ordinal(), ctx.getStart().getLine());
-                    return new Error();
+                    error = true;
+                    return new Undefined();
                 }
             }
             if(returnType instanceof Void){
                 if(!(subType instanceof Void)){
                     OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_RETURN_VALUE.ordinal(), ctx.getStart().getLine());
-                    return new Error();
+                    error = true;
+                    return new Undefined();
                 }
             }
         }
@@ -252,13 +268,15 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
         if (!(leftType instanceof Error)) {
             if (leftType instanceof Function) {
                 OutputHelper.printSemanticError(ErrorType.ASSIGN_TO_FUNCTION.ordinal(), ctx.getStart().getLine());
-                return new Error();
+                error = true;
+                return new Undefined();
             }
         }
         if (!(leftType instanceof Error) && !(rightType instanceof Error)) {
             if (!leftType.equals(rightType)) {
                 OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_ASSIGN.ordinal(), ctx.getStart().getLine());
-                return new Error();
+                error = true;
+                return new Undefined();
             }
         }
         return null;
@@ -267,12 +285,14 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
     @Override
     public Type visitExpressionUnaryOp(SysYParser.ExpressionUnaryOpContext ctx) {
         Type subType = visit(ctx.exp());
-        if (subType instanceof Error)
-            return new Error();
         if (subType instanceof Int)
             return subType;
+
+        error = true;
+        if (subType instanceof Error)
+            return new Undefined();
         OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_OPERATION.ordinal(), ctx.getStart().getLine());
-        return new Error();
+        return new Undefined();
     }
 
     @Override
@@ -320,7 +340,8 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
             return leftType;
         if (!leftType.equals(rightType) || !(leftType instanceof Int))
             OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_OPERATION.ordinal(), lineNumber);
-        return new Error();
+        error = true;
+        return new Undefined();
     }
 
     @Override
@@ -333,7 +354,8 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
             // 对函数或者变量使用下标运算符
             if (!(currentType instanceof Array)) {
                 OutputHelper.printSemanticError(ErrorType.VARIABLE_NOT_ADDRESSABLE.ordinal(), ctx.getStart().getLine());
-                return new Error();
+                error = true;
+                return new Undefined();
             }
             currentType = ((Array) currentType).contained;
             visit(index);
@@ -341,15 +363,11 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
         return currentType;
     }
 
-    private boolean checkVariableRedefined(String varName) {
+    private boolean checkRedefined(String varName) {
         if (curScope == globalScope)
             if (globalScope.getSymbolFromName(varName) != null)
                 return true;
         Scope parentScope = curScope.parent;
-        if (parentScope instanceof FunctionSymbol)
-            parentScope = parentScope.parent;
-        if (parentScope == null)
-            parentScope = globalScope;
         return curScope.getSymbolFromName(varName) != parentScope.getSymbolFromName(varName);
     }
 }

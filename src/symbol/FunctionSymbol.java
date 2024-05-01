@@ -1,6 +1,9 @@
 package symbol;
 
-public class FunctionSymbol extends Scope implements Symbol{
+import symbol.type.Function;
+import symbol.type.Type;
+
+public class FunctionSymbol extends Scope implements Symbol {
     public String name;
     public Type type;
 
