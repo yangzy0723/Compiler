@@ -1,13 +1,5 @@
-int a(){
-	int a[10][10][10] = 10;
-	return a[0][0];
-}
-void b(){
-
-	return;
-}
-int main(){
-	int c[5];
-	if(c[0] > a())
-		return 0;
+const int a[5][5] = 5;
+int a(int i, int i, int i){
+	a = 5;
+	return 0;
 }
