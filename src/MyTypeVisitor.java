@@ -113,7 +113,7 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
 
     @Override
     public Type visitDefFunc(SysYParser.DefFuncContext ctx) {
-        Type returnType = globalScope.getTypeFromName(ctx.funcType().getText());
+        Type returnType = getPrimitiveType(ctx.funcType().getText());
         String funcName = ctx.funcName().getText();
 
         if (globalScope.getSymbolFromName(funcName) != null) {
@@ -183,10 +183,12 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
         if (symbol instanceof FunctionSymbol) {
             Function funcType = (Function) symbol.getType();
             List<Type> paramTypes = funcType.paramsType;
-            if (!paramTypes.isEmpty() && ctx.funcRParams() == null) {
-                error = true;
-                OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_PARAMETERS.ordinal(), ctx.funcName().getStart().getLine());
-                return new Undefined();
+            if (ctx.funcRParams() == null) {
+                if(!paramTypes.isEmpty()) {
+                    error = true;
+                    OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_PARAMETERS.ordinal(), ctx.funcName().getStart().getLine());
+                    return new Undefined();
+                }
             }
             else {
                 List<SysYParser.ParamContext> realParams = ctx.funcRParams().param();
@@ -195,8 +197,7 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
                     OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_PARAMETERS.ordinal(), ctx.funcName().getStart().getLine());
                     return new Undefined();
                 }
-                int argc = realParams.size();
-                for (int i = 0; i < argc; i ++) {
+                for (int i = 0; i < realParams.size(); i++) {
                     Type subType = visit(realParams.get(i).exp());
                     Type expectedType = paramTypes.get(i);
                     if (subType instanceof Undefined)
