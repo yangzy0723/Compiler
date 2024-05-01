@@ -264,16 +264,16 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
         return null;
     }
 
-    @Override
-    public Type visitExpressionUnaryOp(SysYParser.ExpressionUnaryOpContext ctx) {
-        Type subType = visit(ctx.exp());
-        if (subType instanceof Error)
-            return new Error();
-        if (subType instanceof Int)
-            return subType;
-        OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_OPERATION.ordinal(), ctx.getStart().getLine());
-        return new Error();
-    }
+//    @Override
+//    public Type visitExpressionUnaryOp(SysYParser.ExpressionUnaryOpContext ctx) {
+//        Type subType = visit(ctx.exp());
+//        if (subType instanceof Error)
+//            return new Error();
+//        if (subType instanceof Int)
+//            return subType;
+//        OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_OPERATION.ordinal(), ctx.getStart().getLine());
+//        return new Error();
+//    }
 
     @Override
     public Type visitExpressionMulDivMod(SysYParser.ExpressionMulDivModContext ctx) {
