@@ -42,8 +42,8 @@ public class Main {
 
         MyTypeVisitor myTypeVisitor = new MyTypeVisitor();
         myTypeVisitor.visit(tree);
-        if(Error.errorCount == 0)
-            System.err.println("No semantic errors in the program!");
+//        if(Error.errorCount == 0)
+//            System.err.println("No semantic errors in the program!");
     }
 
     private static void printSysYTokenInformation(Token t){
