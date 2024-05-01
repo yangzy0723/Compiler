@@ -206,19 +206,19 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
         return null;
     }
 
-//    @Override
-//    public Type visitStatementReturnWithoutExp(SysYParser.StatementReturnWithoutExpContext ctx) {
-//        Scope scope = curScope;
-//        while (!(scope instanceof FunctionSymbol))
-//            scope = scope.parent;
-//        FunctionSymbol functionSymbol = (FunctionSymbol) scope;
-//        Type returnType = ((Function) functionSymbol.getType()).returnType;
-//        if(!(returnType instanceof Void)){
-//            OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_RETURN_VALUE.ordinal(), ctx.getStart().getLine());
-//            return new Error();
-//        }
-//        return null;
-//    }
+    @Override
+    public Type visitStatementReturnWithoutExp(SysYParser.StatementReturnWithoutExpContext ctx) {
+        Scope scope = curScope;
+        while (!(scope instanceof FunctionSymbol))
+            scope = scope.parent;
+        FunctionSymbol functionSymbol = (FunctionSymbol) scope;
+        Type returnType = ((Function) functionSymbol.getType()).returnType;
+        if(!(returnType instanceof Void)){
+            OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_RETURN_VALUE.ordinal(), ctx.getStart().getLine());
+            return new Error();
+        }
+        return null;
+    }
 
     @Override
     public Type visitStatementReturnWithExp(SysYParser.StatementReturnWithExpContext ctx) {
