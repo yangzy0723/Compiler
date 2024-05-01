@@ -283,34 +283,34 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
     public Type visitExpressionPlusMinus(SysYParser.ExpressionPlusMinusContext ctx) {
         return checkExp(ctx.exp(0), ctx.exp(1));
     }
-//    @Override
-//    public Type visitCondOr(SysYParser.CondOrContext ctx) {
-//        return checkCond(ctx.cond(0), ctx.cond(1));
-//    }
-//    @Override
-//    public Type visitCondAnd(SysYParser.CondAndContext ctx) {
-//        return checkCond(ctx.cond(0), ctx.cond(1));
-//    }
-//    @Override
-//    public Type visitCondEqual(SysYParser.CondEqualContext ctx) {
-//        return checkCond(ctx.cond(0), ctx.cond(1));
-//    }
-//    @Override
-//    public Type visitCondCompare(SysYParser.CondCompareContext ctx) {
-//        return checkCond(ctx.cond(0), ctx.cond(1));
-//    }
+    @Override
+    public Type visitCondOr(SysYParser.CondOrContext ctx) {
+        return checkCond(ctx.cond(0), ctx.cond(1));
+    }
+    @Override
+    public Type visitCondAnd(SysYParser.CondAndContext ctx) {
+        return checkCond(ctx.cond(0), ctx.cond(1));
+    }
+    @Override
+    public Type visitCondEqual(SysYParser.CondEqualContext ctx) {
+        return checkCond(ctx.cond(0), ctx.cond(1));
+    }
+    @Override
+    public Type visitCondCompare(SysYParser.CondCompareContext ctx) {
+        return checkCond(ctx.cond(0), ctx.cond(1));
+    }
     private Type checkExp(SysYParser.ExpContext leftCtx, SysYParser.ExpContext rightCtx){
         int lineNumber = leftCtx.getStart().getLine();
         Type left = visit(leftCtx);
         Type right = visit(rightCtx);
         return check(left, right, lineNumber);
     }
-//    private Type checkCond(SysYParser.CondContext leftCond, SysYParser.CondContext rightCond){
-//        int lineNumber = leftCond.getStart().getLine();
-//        Type left = visit(leftCond);
-//        Type right = visit(rightCond);
-//        return check(left, right, lineNumber);
-//    }
+    private Type checkCond(SysYParser.CondContext leftCond, SysYParser.CondContext rightCond){
+        int lineNumber = leftCond.getStart().getLine();
+        Type left = visit(leftCond);
+        Type right = visit(rightCond);
+        return check(left, right, lineNumber);
+    }
     private Type check(Type leftType, Type rightType, int lineNumber){
         if (leftType instanceof Error || rightType instanceof Error)
             return new Error();
