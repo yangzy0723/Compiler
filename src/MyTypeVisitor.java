@@ -24,7 +24,7 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
                 subType = visit(constDef.constInitVal());
             if (constDef.L_BRACKT().isEmpty()){
                 varSymbol = new BaseSymbol(varName, type);
-                if (subType != null && !(subType instanceof Error)) {
+                if (subType != null && !(subType instanceof Undefined)) {
                     if (!subType.equals(type)) {
                         hasError = true;
                         OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_ASSIGN.ordinal(), ctx.getStart().getLine());
@@ -64,7 +64,7 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
                 subType = visit(varDef.initVal());
             if (varDef.L_BRACKT().isEmpty()){
                 varSymbol = new BaseSymbol(varName, type);
-                if (subType != null && !(subType instanceof Error)) {
+                if (subType != null && !(subType instanceof Undefined)) {
                     if (!subType.equals(type)) {
                         hasError = true;
                         OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_ASSIGN.ordinal(), ctx.getStart().getLine());
@@ -185,7 +185,7 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
                 for (int i = 0; i < argc; i ++) {
                     // 底下就出错了, 默认对的类型
                     Type subType = visit(realParams.get(i).exp());
-                    if (subType instanceof Error)
+                    if (subType instanceof Undefined)
                         continue;
                     Type expectedType = paramTypes.get(i);
                     if (!expectedType.equals(subType)) {
@@ -237,7 +237,7 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
     @Override
     public Type visitStatementReturnWithExp(SysYParser.StatementReturnWithExpContext ctx) {
         Type subType = visit(ctx.exp());
-        if (!(subType instanceof Error)) {
+        if (!(subType instanceof Undefined)) {
             Scope scope = curScope;
             while (!(scope instanceof FunctionSymbol))
                 scope = scope.parent;
@@ -265,14 +265,14 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
     public Type visitStatementIVal(SysYParser.StatementIValContext ctx) {
         Type leftType = visitLVal(ctx.lVal());
         Type rightType = visit(ctx.exp());
-        if (!(leftType instanceof Error)) {
+        if (!(leftType instanceof Undefined)) {
             if (leftType instanceof Function) {
                 OutputHelper.printSemanticError(ErrorType.ASSIGN_TO_FUNCTION.ordinal(), ctx.getStart().getLine());
                 error = true;
                 return new Undefined();
             }
         }
-        if (!(leftType instanceof Error) && !(rightType instanceof Error)) {
+        if (!(leftType instanceof Undefined) && !(rightType instanceof Undefined)) {
             if (!leftType.equals(rightType)) {
                 OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_ASSIGN.ordinal(), ctx.getStart().getLine());
                 error = true;
@@ -289,7 +289,7 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
             return subType;
 
         error = true;
-        if (subType instanceof Error)
+        if (subType instanceof Undefined)
             return new Undefined();
         OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_OPERATION.ordinal(), ctx.getStart().getLine());
         return new Undefined();
