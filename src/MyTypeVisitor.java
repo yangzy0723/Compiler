@@ -275,14 +275,14 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
         return new Error();
     }
 
-    @Override
-    public Type visitExpressionMulDivMod(SysYParser.ExpressionMulDivModContext ctx) {
-        return checkExp(ctx.exp(0), ctx.exp(1));
-    }
-    @Override
-    public Type visitExpressionPlusMinus(SysYParser.ExpressionPlusMinusContext ctx) {
-        return checkExp(ctx.exp(0), ctx.exp(1));
-    }
+//    @Override
+//    public Type visitExpressionMulDivMod(SysYParser.ExpressionMulDivModContext ctx) {
+//        return checkExp(ctx.exp(0), ctx.exp(1));
+//    }
+//    @Override
+//    public Type visitExpressionPlusMinus(SysYParser.ExpressionPlusMinusContext ctx) {
+//        return checkExp(ctx.exp(0), ctx.exp(1));
+//    }
     @Override
     public Type visitCondOr(SysYParser.CondOrContext ctx) {
         return checkCond(ctx.cond(0), ctx.cond(1));
