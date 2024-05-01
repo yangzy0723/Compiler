@@ -1,7 +1,3 @@
-void a(){
-	return ;
-}
-
 int main(){
-	return 3 * a();
+	return (3 + 4);
 }

@@ -276,6 +276,10 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
     }
 
     @Override
+    public Type visitExpressionExp(SysYParser.ExpressionExpContext ctx) {
+        return visit(ctx.exp());
+    }
+    @Override
     public Type visitExpressionMulDivMod(SysYParser.ExpressionMulDivModContext ctx) {
         return checkExp(ctx.exp(0), ctx.exp(1));
     }
