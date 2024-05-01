@@ -41,7 +41,7 @@ public class Main {
 
         MyTypeVisitor myTypeVisitor = new MyTypeVisitor();
         myTypeVisitor.visit(tree);
-        if(MyTypeVisitor.error)
+        if(!MyTypeVisitor.error)
             System.err.println("No semantic errors in the program!");
     }
 
