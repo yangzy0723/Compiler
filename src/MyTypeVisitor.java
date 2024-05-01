@@ -113,7 +113,7 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
 
     @Override
     public Type visitDefFunc(SysYParser.DefFuncContext ctx) {
-        Type returnType = getPrimitiveType(ctx.funcType().getText());
+        Type returnType = globalScope.getTypeFromName(ctx.funcType().getText());
         String funcName = ctx.funcName().getText();
 
         if (globalScope.getSymbolFromName(funcName) != null) {
@@ -254,15 +254,15 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
         Type rightType = visit(ctx.exp());
         if (!(leftType instanceof Undefined)) {
             if (leftType instanceof Function) {
-                OutputHelper.printSemanticError(ErrorType.ASSIGN_TO_FUNCTION.ordinal(), ctx.getStart().getLine());
                 error = true;
+                OutputHelper.printSemanticError(ErrorType.ASSIGN_TO_FUNCTION.ordinal(), ctx.getStart().getLine());
                 return new Undefined();
             }
         }
         if (!(leftType instanceof Undefined) && !(rightType instanceof Undefined)) {
             if (!leftType.equals(rightType)) {
-                OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_ASSIGN.ordinal(), ctx.getStart().getLine());
                 error = true;
+                OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_ASSIGN.ordinal(), ctx.getStart().getLine());
                 return new Undefined();
             }
         }
@@ -274,10 +274,9 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
         Type subType = visit(ctx.exp());
         if (subType instanceof Int)
             return subType;
-
-        error = true;
         if (subType instanceof Undefined)
             return new Undefined();
+        error = true;
         OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_OPERATION.ordinal(), ctx.getStart().getLine());
         return new Undefined();
     }
@@ -340,8 +339,8 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
         for (SysYParser.ExpContext index : indexes) {
             // 对函数或者变量使用下标运算符
             if (!(currentType instanceof Array)) {
-                OutputHelper.printSemanticError(ErrorType.VARIABLE_NOT_ADDRESSABLE.ordinal(), ctx.getStart().getLine());
                 error = true;
+                OutputHelper.printSemanticError(ErrorType.VARIABLE_NOT_ADDRESSABLE.ordinal(), ctx.getStart().getLine());
                 return new Undefined();
             }
             currentType = ((Array) currentType).contained;
