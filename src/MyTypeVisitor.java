@@ -10,43 +10,43 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
     private final Scope globalScope = new Scope(null);
     private Scope curScope = globalScope;
 
-    @Override
-    public Type visitConstDecl(SysYParser.ConstDeclContext ctx) {
-        Type type = globalScope.getTypeFromName(ctx.bType().getText());
-        boolean hasError = false;
-        for (SysYParser.ConstDefContext constDef : ctx.constDef()) {
-            String varName = constDef.IDENT().getText();
-            Symbol varSymbol;
-            Type subType = null;
-            if (constDef.constInitVal() != null)
-                subType = visit(constDef.constInitVal());
-            if (constDef.L_BRACKT().isEmpty()){
-                varSymbol = new BaseSymbol(varName, type);
-                if (subType != null && !(subType instanceof Error)) {
-                    if (!subType.equals(type)) {
-                        hasError = true;
-                        OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_ASSIGN.ordinal(), ctx.getStart().getLine());
-                    }
-                }
-            }
-            else {
-                int dimension = constDef.L_BRACKT().size();
-                Type currentType = new Int();
-                for (int i = 0; i < dimension; i++)
-                    currentType = new Array(currentType);
-                varSymbol = new BaseSymbol(varName, currentType);
-            }
-            if (checkVariableRedefined(varName)) {
-                OutputHelper.printSemanticError(ErrorType.REDEFINED_VARIABLE.ordinal(), ctx.getStart().getLine());
-                hasError = true;
-            }
-            else
-                curScope.define(varSymbol);
-        }
-        if (hasError)
-            return new Error();
-        return null;
-    }
+//    @Override
+//    public Type visitConstDecl(SysYParser.ConstDeclContext ctx) {
+//        Type type = globalScope.getTypeFromName(ctx.bType().getText());
+//        boolean hasError = false;
+//        for (SysYParser.ConstDefContext constDef : ctx.constDef()) {
+//            String varName = constDef.IDENT().getText();
+//            Symbol varSymbol;
+//            Type subType = null;
+//            if (constDef.constInitVal() != null)
+//                subType = visit(constDef.constInitVal());
+//            if (constDef.L_BRACKT().isEmpty()){
+//                varSymbol = new BaseSymbol(varName, type);
+//                if (subType != null && !(subType instanceof Error)) {
+//                    if (!subType.equals(type)) {
+//                        hasError = true;
+//                        OutputHelper.printSemanticError(ErrorType.INCOMPATIBLE_ASSIGN.ordinal(), ctx.getStart().getLine());
+//                    }
+//                }
+//            }
+//            else {
+//                int dimension = constDef.L_BRACKT().size();
+//                Type currentType = new Int();
+//                for (int i = 0; i < dimension; i++)
+//                    currentType = new Array(currentType);
+//                varSymbol = new BaseSymbol(varName, currentType);
+//            }
+//            if (checkVariableRedefined(varName)) {
+//                OutputHelper.printSemanticError(ErrorType.REDEFINED_VARIABLE.ordinal(), ctx.getStart().getLine());
+//                hasError = true;
+//            }
+//            else
+//                curScope.define(varSymbol);
+//        }
+//        if (hasError)
+//            return new Error();
+//        return null;
+//    }
 
     @Override
     public Type visitVarDecl(SysYParser.VarDeclContext ctx) {
@@ -324,7 +324,7 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
     @Override
     public Type visitLVal(SysYParser.LValContext ctx) {
         List<SysYParser.ExpContext> indexes = ctx.exp();
-        if (indexes == null || indexes.isEmpty())
+        if (indexes.isEmpty())
             return visitTerminal(ctx.IDENT());
         Type currentType = visitTerminal(ctx.IDENT());
         for (SysYParser.ExpContext index : indexes) {

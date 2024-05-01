@@ -1,1 +1,13 @@
-int a = {};
+int a(){
+	int a[10][10][10] = 10;
+	return a[0][0];
+}
+void b(){
+
+	return;
+}
+int main(){
+	int c[5];
+	if(c[0] > a())
+		return 0;
+}
