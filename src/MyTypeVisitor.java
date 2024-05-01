@@ -87,56 +87,56 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
         return null;
     }
 
-//    @Override
-//    public Type visitDefFunc(SysYParser.DefFuncContext ctx) {
-//        Type returnType = globalScope.getTypeFromName(ctx.funcType().getText());
-//        String funcName = ctx.funcName().getText();
-//
-//        if (globalScope.getSymbolFromName(funcName) != null) {
-//            OutputHelper.printSemanticError(ErrorType.REDEFINED_FUNCTION.ordinal(), ctx.getStart().getLine());
-//            return new Error();
-//        }
-//
-//        List<Type> paramsType = new ArrayList<>();
-//        List<BaseSymbol> paramSymbols = new ArrayList<>();
-//
-//        if (ctx.funcFParams() != null) {
-//            for (SysYParser.FuncFParamContext param : ctx.funcFParams().funcFParam()) {
-//                Type paramType = globalScope.getTypeFromName(param.bType().getText());
-//                String paramName = param.IDENT().getText();
-//
-//                if (param.R_BRACKT().isEmpty())
-//                    paramSymbols.add(new BaseSymbol(paramName, paramType));
-//                else {
-//                    Type currentType = paramType;
-//                    int dimension = param.R_BRACKT().size();
-//                    for (int i = 0; i < dimension; i++)
-//                        currentType = new Array(currentType);
-//                    paramSymbols.add(new BaseSymbol(paramName, currentType));
-//                }
-//            }
-//        }
-//
-//        Function function = new Function(returnType, paramsType);
-//        FunctionSymbol funcSymbol = new FunctionSymbol(funcName, function, curScope);
-//        globalScope.define(funcSymbol);
-//        curScope = funcSymbol;
-//
-//        for (BaseSymbol param : paramSymbols) {
-//            if (checkVariableRedefined(param.getName())) {
-//                OutputHelper.printSemanticError(ErrorType.REDEFINED_VARIABLE.ordinal(), ctx.getStart().getLine());
-//                Error.errorCount++;
-//            }
-//            else {
-//                paramsType.add(param.getType());
-//                funcSymbol.define(param);
-//            }
-//        }
-//        visitBlock(ctx.block());
-//        curScope = curScope.parent;
-//
-//        return null;
-//    }
+    @Override
+    public Type visitDefFunc(SysYParser.DefFuncContext ctx) {
+        Type returnType = globalScope.getTypeFromName(ctx.funcType().getText());
+        String funcName = ctx.funcName().getText();
+
+        if (globalScope.getSymbolFromName(funcName) != null) {
+            OutputHelper.printSemanticError(ErrorType.REDEFINED_FUNCTION.ordinal(), ctx.getStart().getLine());
+            return new Error();
+        }
+
+        List<Type> paramsType = new ArrayList<>();
+        List<BaseSymbol> paramSymbols = new ArrayList<>();
+
+        if (ctx.funcFParams() != null) {
+            for (SysYParser.FuncFParamContext param : ctx.funcFParams().funcFParam()) {
+                Type paramType = globalScope.getTypeFromName(param.bType().getText());
+                String paramName = param.IDENT().getText();
+
+                if (param.R_BRACKT().isEmpty())
+                    paramSymbols.add(new BaseSymbol(paramName, paramType));
+                else {
+                    Type currentType = paramType;
+                    int dimension = param.R_BRACKT().size();
+                    for (int i = 0; i < dimension; i++)
+                        currentType = new Array(currentType);
+                    paramSymbols.add(new BaseSymbol(paramName, currentType));
+                }
+            }
+        }
+
+        Function function = new Function(returnType, paramsType);
+        FunctionSymbol funcSymbol = new FunctionSymbol(funcName, function, curScope);
+        globalScope.define(funcSymbol);
+        curScope = funcSymbol;
+
+        for (BaseSymbol param : paramSymbols) {
+            if (checkVariableRedefined(param.getName())) {
+                OutputHelper.printSemanticError(ErrorType.REDEFINED_VARIABLE.ordinal(), ctx.getStart().getLine());
+                Error.errorCount++;
+            }
+            else {
+                paramsType.add(param.getType());
+                funcSymbol.define(param);
+            }
+        }
+        visitBlock(ctx.block());
+        curScope = curScope.parent;
+
+        return null;
+    }
 
     @Override
     public Type visitBlock(SysYParser.BlockContext ctx) {
