@@ -123,14 +123,15 @@ public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
         curScope = funcSymbol;
 
         for (BaseSymbol param : paramSymbols) {
-            if (checkVariableRedefined(param.getName()))
+            if (checkVariableRedefined(param.getName())) {
                 OutputHelper.printSemanticError(ErrorType.REDEFINED_VARIABLE.ordinal(), ctx.getStart().getLine());
+                Error.errorCount++;
+            }
             else {
                 paramsType.add(param.getType());
                 funcSymbol.define(param);
             }
         }
-
         visitBlock(ctx.block());
         curScope = curScope.parent;
 
