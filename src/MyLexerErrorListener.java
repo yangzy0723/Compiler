@@ -3,8 +3,9 @@ import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
 
 public class MyLexerErrorListener extends BaseErrorListener {
-    private boolean lexerError = false;
     private final StringBuilder errorBuffer = new StringBuilder();
+    private boolean lexerError = false;
+
     @Override
     public void syntaxError(Recognizer<?, ?> recognizer, Object offendingSymbol, int line, int charPositionInLine, String msg, RecognitionException e) {
         if (e != null) {

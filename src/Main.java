@@ -4,7 +4,6 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 
-
 import java.io.IOException;
 
 public class Main {
@@ -41,12 +40,12 @@ public class Main {
 
         MyTypeVisitor myTypeVisitor = new MyTypeVisitor();
         myTypeVisitor.visit(tree);
-        if(!MyTypeVisitor.error)
+        if (!MyTypeVisitor.error)
             System.err.println("No semantic errors in the program!");
     }
 
-    private static void printSysYTokenInformation(Token t){
-        if(t.getType() == SysYLexer.INTEGER_CONST){
+    private static void printSysYTokenInformation(Token t) {
+        if (t.getType() == SysYLexer.INTEGER_CONST) {
             int num = 0;
             String numString = t.getText();
             String decimalString = "";
@@ -58,8 +57,7 @@ public class Main {
                 num = Integer.parseInt(numString); // 十进制转换
             decimalString = String.valueOf(num);
             System.err.println(SysYLexer.VOCABULARY.getSymbolicName(t.getType()) + " " + decimalString + " at Line " + t.getLine() + ".");
-        }
-        else
+        } else
             System.err.println(SysYLexer.VOCABULARY.getSymbolicName(t.getType()) + " " + t.getText() + " at Line " + t.getLine() + ".");
     }
 }

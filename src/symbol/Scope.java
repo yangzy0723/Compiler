@@ -1,8 +1,6 @@
 package symbol;
 
-import symbol.type.Int;
 import symbol.type.Type;
-import symbol.type.Void;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -30,7 +28,7 @@ public class Scope {
         return null;
     }
 
-    public Type getTypeFromName(String name){
+    public Type getTypeFromName(String name) {
         return getSymbolFromName(name).getType();
     }
 }

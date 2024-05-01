@@ -1,30 +1,28 @@
+import my_enum.SGR_Name;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.Objects;
 import java.util.Stack;
 import java.util.Vector;
 
-public class MyColorAndFormatVisitor extends SysYParserBaseVisitor<Void>{
-    private int indentLevel = 0;
-    private int needRecover = 0;
-    private boolean extraIndent = false;
-    private StringBuilder stringBuffer = new StringBuilder();
-    private final Stack<Integer> lastIfNeedRecovers = new Stack<>();
-    private final Vector<StringBuilder> stringBuffers = new Vector<>();
-    private final Vector<Integer> indentLevels = new Vector<>();
-
+public class MyColorAndFormatVisitor extends SysYParserBaseVisitor<Void> {
     public static int[] bracketColor = {SGR_Name.LightRed, SGR_Name.LightGreen, SGR_Name.LightYellow, SGR_Name.LightBlue, SGR_Name.LightMagenta, SGR_Name.LightCyan};
     public static String[] lefts = {"L_PAREN", "L_BRACKT", "L_BRACE"};
     public static String[] rights = {"R_PAREN", "R_BRACKT", "R_BRACE"};
     public static int step = 0;
     public static int nowBracketOrder = -1;
-
     public static String[] keywords = {"CONST", "INT", "VOID", "IF", "ELSE", "WHILE", "BREAK", "CONTINUE", "RETURN"};
     public static String[] operators = {"PLUS", "MINUS", "MUL", "DIV", "MOD", "ASSIGN", "EQ", "NEQ", "LT", "GT", "LE", "GE", "NOT", "AND", "OR", "COMMA", "SEMICOLON"};
     public static String[] keywordsSpace = {"CONST", "INT", "VOID", "IF", "ELSE", "WHILE", "RETURN"};
     public static String[] operatorsSpace = {"PLUS", "MINUS", "MUL", "DIV", "MOD", "ASSIGN", "EQ", "NEQ", "LT", "GT", "LE", "GE", "AND", "OR"};
     public static String[] integerConst = {"INTEGER_CONST"};
-
+    private final Stack<Integer> lastIfNeedRecovers = new Stack<>();
+    private final Vector<StringBuilder> stringBuffers = new Vector<>();
+    private final Vector<Integer> indentLevels = new Vector<>();
+    private int indentLevel = 0;
+    private int needRecover = 0;
+    private boolean extraIndent = false;
+    private StringBuilder stringBuffer = new StringBuilder();
     private boolean isFuncName = false;
     private boolean isStatement = false;
     private boolean isDeclare = false;
@@ -39,94 +37,85 @@ public class MyColorAndFormatVisitor extends SysYParserBaseVisitor<Void>{
 
     @Override
     public Void visitTerminal(TerminalNode node) {
-        if(node.getSymbol().getType() != -1) {
+        if (node.getSymbol().getType() != -1) {
             String nodeSymbolicName = SysYLexer.VOCABULARY.getSymbolicName(node.getSymbol().getType());
             String nodeLiteralName = node.getText();
 
-            if(check(nodeSymbolicName, keywords)) {
-                if(Objects.equals(nodeSymbolicName, "IF")) {
-                    if(passElse)
+            if (check(nodeSymbolicName, keywords)) {
+                if (Objects.equals(nodeSymbolicName, "IF")) {
+                    if (passElse)
                         passElseIf = true;
                     else
                         passIf = true;
                     passElse = false;
                     isLeftBraceSpaceElse = false;
-                }
-                else if(Objects.equals(nodeSymbolicName, "ELSE")) {
+                } else if (Objects.equals(nodeSymbolicName, "ELSE")) {
                     isLeftBraceSpaceElse = true;
                     passElse = true;
-                }
-                else if(Objects.equals(nodeSymbolicName, "WHILE"))
+                } else if (Objects.equals(nodeSymbolicName, "WHILE"))
                     passWhile = true;
 
-                if(!isDeclare)
+                if (!isDeclare)
                     stringBuffer.append("\u001B[").append(SGR_Name.LightCyan).append("m").append(nodeLiteralName).append("\u001B[0m");
                 else
                     stringBuffer.append("\u001B[").append(SGR_Name.LightCyan).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName).append("\u001B[0m");
 
-                if(check(nodeSymbolicName, keywordsSpace)){
-                    if(!(Objects.equals(nodeSymbolicName, "RETURN") && isBreakWithoutExp))
+                if (check(nodeSymbolicName, keywordsSpace)) {
+                    if (!(Objects.equals(nodeSymbolicName, "RETURN") && isBreakWithoutExp))
                         stringBuffer.append(" ");
                 }
-            }
-            else if(check(nodeSymbolicName, operators)) {
-                if(!isUnaryOp && check(nodeSymbolicName, operatorsSpace))
+            } else if (check(nodeSymbolicName, operators)) {
+                if (!isUnaryOp && check(nodeSymbolicName, operatorsSpace))
                     stringBuffer.append(" ");
 
-                if(!isDeclare)
+                if (!isDeclare)
                     stringBuffer.append("\u001B[").append(SGR_Name.LightRed).append("m").append(nodeLiteralName).append("\u001B[0m");
                 else
                     stringBuffer.append("\u001B[").append(SGR_Name.LightRed).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName).append("\u001B[0m");
 
-                if(!isUnaryOp && check(nodeSymbolicName, operatorsSpace))
-                        stringBuffer.append(" ");
+                if (!isUnaryOp && check(nodeSymbolicName, operatorsSpace))
+                    stringBuffer.append(" ");
                 isUnaryOp = false;
 
-                if(Objects.equals(nodeSymbolicName, "COMMA"))
+                if (Objects.equals(nodeSymbolicName, "COMMA"))
                     stringBuffer.append(" ");
-            }
-            else if(check(nodeSymbolicName, integerConst)) {
-                if(!isDeclare)
-                   stringBuffer.append("\u001B[").append(SGR_Name.Magenta).append("m").append(nodeLiteralName).append("\u001B[0m");
+            } else if (check(nodeSymbolicName, integerConst)) {
+                if (!isDeclare)
+                    stringBuffer.append("\u001B[").append(SGR_Name.Magenta).append("m").append(nodeLiteralName).append("\u001B[0m");
                 else
                     stringBuffer.append("\u001B[").append(SGR_Name.Magenta).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName).append("\u001B[0m");
-            }
-            else if(check(nodeSymbolicName, lefts)){
+            } else if (check(nodeSymbolicName, lefts)) {
                 nowBracketOrder++;
-                if(nowBracketOrder >= 6){
+                if (nowBracketOrder >= 6) {
                     nowBracketOrder = nowBracketOrder % 6;
                     step++;
                 }
 
-                if(isDeclare)
+                if (isDeclare)
                     stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName).append("\u001B[0m");
-                else{
-                    if(Objects.equals(nodeSymbolicName, "L_BRACE")){
-                        if(isLeftBraceSpaceElse){
+                else {
+                    if (Objects.equals(nodeSymbolicName, "L_BRACE")) {
+                        if (isLeftBraceSpaceElse) {
                             stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append("{").append("\u001B[0m");
                             isLeftBraceSpaceElse = false;
-                        }
-                        else if(isLeftBraceSpace){
+                        } else if (isLeftBraceSpace) {
                             stringBuffer.append(" ");
                             stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append("{").append("\u001B[0m");
                             isLeftBraceSpace = false;
-                        }
-                        else{
+                        } else {
                             newLine();
                             stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append("{").append("\u001B[0m");
                         }
                         extraIndent = true;
                         indentLevel++;
-                    }
-                    else
+                    } else
                         stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append("m").append(nodeLiteralName).append("\u001B[0m");
                 }
-            }
-            else if(check(nodeSymbolicName, rights)){
-                if(isDeclare)
+            } else if (check(nodeSymbolicName, rights)) {
+                if (isDeclare)
                     stringBuffer.append("\u001B[").append(bracketColor[nowBracketOrder]).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName).append("\u001B[0m");
-                else{
-                    if(Objects.equals(nodeSymbolicName, "R_BRACE")) {
+                else {
+                    if (Objects.equals(nodeSymbolicName, "R_BRACE")) {
                         newLine();
                         indentLevel--;
                     }
@@ -134,21 +123,19 @@ public class MyColorAndFormatVisitor extends SysYParserBaseVisitor<Void>{
                 }
 
                 nowBracketOrder--;
-                if(nowBracketOrder < 0){
+                if (nowBracketOrder < 0) {
                     nowBracketOrder = 5;
                     step--;
                 }
-            }
-            else{
-                if(isFuncName && Objects.equals(nodeSymbolicName, "IDENT")){
-                    if(!isDeclare)
+            } else {
+                if (isFuncName && Objects.equals(nodeSymbolicName, "IDENT")) {
+                    if (!isDeclare)
                         stringBuffer.append("\u001B[").append(SGR_Name.LightYellow).append("m").append(nodeLiteralName).append("\u001B[0m");
                     else
                         stringBuffer.append("\u001B[").append(SGR_Name.LightYellow).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName).append("\u001B[0m");
-                }
-                else if(isDeclare)
+                } else if (isDeclare)
                     stringBuffer.append("\u001B[").append(SGR_Name.LightMagenta).append(";").append(SGR_Name.Underlined).append("m").append(nodeLiteralName).append("\u001B[0m");
-                else if(isStatement)
+                else if (isStatement)
                     stringBuffer.append("\u001B[").append(SGR_Name.White).append("m").append(nodeLiteralName).append("\u001B[0m");
                 else
                     stringBuffer.append(nodeLiteralName);
@@ -190,7 +177,7 @@ public class MyColorAndFormatVisitor extends SysYParserBaseVisitor<Void>{
 
     @Override
     public Void visitStatementIf(SysYParser.StatementIfContext ctx) {
-        if(!passElse)
+        if (!passElse)
             newLine();
         else
             passElse = false;
@@ -290,7 +277,7 @@ public class MyColorAndFormatVisitor extends SysYParserBaseVisitor<Void>{
         newLine();
 
         isDeclare = true;
-        Void ret =  super.visitDecl(ctx);
+        Void ret = super.visitDecl(ctx);
         isDeclare = false;
 
         return ret;
@@ -313,7 +300,7 @@ public class MyColorAndFormatVisitor extends SysYParserBaseVisitor<Void>{
         passWhile = false;
 
         int tmp = 0;
-        if(isLeftBraceSpace) {
+        if (isLeftBraceSpace) {
             tmp = needRecover;
             needRecover = 0;
         }
@@ -323,17 +310,17 @@ public class MyColorAndFormatVisitor extends SysYParserBaseVisitor<Void>{
         return ret;
     }
 
-    private boolean check(String goal, String[] sets){
-        for(String s : sets)
-            if(s.equals(goal))
+    private boolean check(String goal, String[] sets) {
+        for (String s : sets)
+            if (s.equals(goal))
                 return true;
         return false;
     }
 
-    private void newLine(){
-        if(isLeftBraceSpaceElse)
+    private void newLine() {
+        if (isLeftBraceSpaceElse)
             isLeftBraceSpaceElse = false;
-        if(passIf || passElse || passElseIf || passWhile){
+        if (passIf || passElse || passElseIf || passWhile) {
             stringBuffers.add(stringBuffer);
             indentLevels.add(indentLevel);
             stringBuffer = new StringBuilder();
@@ -343,15 +330,13 @@ public class MyColorAndFormatVisitor extends SysYParserBaseVisitor<Void>{
             passElse = false;
             passElseIf = false;
             passWhile = false;
-        }
-        else if(needRecover > 0){
+        } else if (needRecover > 0) {
             stringBuffers.add(stringBuffer);
             indentLevels.add(indentLevel);
             stringBuffer = new StringBuilder();
             indentLevel -= needRecover;
             needRecover = 0;
-        }
-        else {
+        } else {
             if (extraIndent)
                 indentLevel--;
             stringBuffers.add(stringBuffer);
@@ -364,13 +349,13 @@ public class MyColorAndFormatVisitor extends SysYParserBaseVisitor<Void>{
         }
     }
 
-    public void printStringBuffer(){
+    public void printStringBuffer() {
         newLine();
-        while(stringBuffers.get(0).length() == 0) {
+        while (stringBuffers.get(0).length() == 0) {
             stringBuffers.remove(0);
             indentLevels.remove(0);
         }
-        for(int i = 0; i < stringBuffers.size(); i++) {
+        for (int i = 0; i < stringBuffers.size(); i++) {
             StringBuilder sb = stringBuffers.get(i);
             while (sb.length() > 0 && sb.charAt(sb.length() - 1) == ' ') {
                 sb.deleteCharAt(sb.length() - 1);
@@ -380,8 +365,7 @@ public class MyColorAndFormatVisitor extends SysYParserBaseVisitor<Void>{
         }
     }
 
-    private void dealIndent(int indentLevel){
+    private void dealIndent(int indentLevel) {
         System.out.print(" ".repeat(Math.max(0, indentLevel * 4)));
     }
-
 }
