@@ -14,20 +14,24 @@ public class Main {
         String source = args[0];
         CharStream input = CharStreams.fromFileName(source);
         SysYLexer sysYLexer = new SysYLexer(input);
-        sysYLexer.removeErrorListeners();
-        MyLexerErrorListener myLexerErrorListener = new MyLexerErrorListener();
-        sysYLexer.addErrorListener(myLexerErrorListener);
+
+//        sysYLexer.removeErrorListeners();
+//        MyLexerErrorListener myLexerErrorListener = new MyLexerErrorListener();
+//        sysYLexer.addErrorListener(myLexerErrorListener);
+
 //        List<? extends Token> myTokens = sysYLexer.getAllTokens();
 //        if (myLexerErrorListener.isLexerError())
 //            myLexerErrorListener.printLexerErrorInformation();
 //        else
 //            for (Token t : myTokens)
 //                printSysYTokenInformation(t);
+
         CommonTokenStream tokens = new CommonTokenStream(sysYLexer);
         SysYParser sysYParser = new SysYParser(tokens);
-        sysYParser.removeErrorListeners();
-        MyParserErrorListener myParserErrorListener = new MyParserErrorListener();
-        sysYParser.addErrorListener(myParserErrorListener);
+
+//        sysYParser.removeErrorListeners();
+//        MyParserErrorListener myParserErrorListener = new MyParserErrorListener();
+//        sysYParser.addErrorListener(myParserErrorListener);
 
         ParseTree tree = sysYParser.compUnit();
 //        MyColorAndFormatVisitor myColorAndFormatVisitor = new MyColorAndFormatVisitor();
@@ -38,10 +42,12 @@ public class Main {
 //        else
 //            myColorAndFormatVisitor.printStringBuffer();
 
-        MyTypeVisitor myTypeVisitor = new MyTypeVisitor();
-        myTypeVisitor.visit(tree);
-        if (!MyTypeVisitor.error)
-            System.err.println("No semantic errors in the program!");
+//        MyTypeVisitor myTypeVisitor = new MyTypeVisitor();
+//        myTypeVisitor.visit(tree);
+//        if (!MyTypeVisitor.error)
+//            System.err.println("No semantic errors in the program!");
+
+
     }
 
     private static void printSysYTokenInformation(Token t) {
