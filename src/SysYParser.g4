@@ -70,7 +70,7 @@ blockItem
    	;
 
 statement
-   	: lVal ASSIGN exp SEMICOLON									# StatementIVal
+   	: lVal ASSIGN exp SEMICOLON									# StatementLVal
    	| exp? SEMICOLON											# StatementExp
    	| block														# StatementBlock
    	| IF L_PAREN cond R_PAREN statement (statementElse)?		# StatementIf

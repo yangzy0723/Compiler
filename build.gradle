@@ -22,10 +22,10 @@ repositories {
 }
 
 dependencies {
+    implementation group: 'org.antlr', name: 'antlr4-runtime', version: '4.9.1'
+    implementation group: 'org.bytedeco', name: 'llvm-platform', version: '13.0.1-1.5.7'
     // https://mvnrepository.com/artifact/org.antlr/antlr4
     antlr 'org.antlr:antlr4:4.9.1'
-    testImplementation platform('org.junit:junit-bom:5.9.1')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
 }
 
 test {
