@@ -6,7 +6,7 @@ import org.bytedeco.llvm.LLVM.*;
 import static org.bytedeco.llvm.global.LLVM.*;
 
 
-public class MyLLVMVisitor extends SysYParserBaseVisitor<LLVMValueRef> {
+public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
     //创建module
     LLVMModuleRef module = LLVMModuleCreateWithName("module");
     //初始化IRBuilder，后续将使用这个builder去生成LLVM IR
@@ -21,7 +21,7 @@ public class MyLLVMVisitor extends SysYParserBaseVisitor<LLVMValueRef> {
     private final Scope globalScope = new Scope(null);
     private Scope curScope = globalScope;
 
-    MyLLVMVisitor(String targetFilePath) {
+    VisitorLLVM(String targetFilePath) {
         this.targetFilePath = targetFilePath;
 
         //初始化LLVM

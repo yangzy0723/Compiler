@@ -38,7 +38,7 @@ public class Main {
 //        sysYParser.addErrorListener(myParserErrorListener);
 
         ParseTree tree = sysYParser.compUnit();
-//        MyColorAndFormatVisitor myColorAndFormatVisitor = new MyColorAndFormatVisitor();
+//        VisitorColorAndFormat myColorAndFormatVisitor = new VisitorColorAndFormat();
 //        myColorAndFormatVisitor.visit(tree);
 
 //        if(myParserErrorListener.isParserError())
@@ -46,14 +46,13 @@ public class Main {
 //        else
 //            myColorAndFormatVisitor.printStringBuffer();
 
-//        MyTypeVisitor myTypeVisitor = new MyTypeVisitor();
+//        VisitorType myTypeVisitor = new VisitorType();
 //        myTypeVisitor.visit(tree);
-//        if (!MyTypeVisitor.error)
+//        if (!VisitorType.error)
 //            System.err.println("No semantic errors in the program!");
 
-        MyLLVMVisitor myLLVMVisitor = new MyLLVMVisitor(target);
-        myLLVMVisitor.visit(tree);
-
+        VisitorLLVM visitorLLVM = new VisitorLLVM(target);
+        visitorLLVM.visit(tree);
     }
 
     private static void printSysYTokenInformation(Token t) {
