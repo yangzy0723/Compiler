@@ -18,7 +18,7 @@ public class SGR_Name {
             ResetHidden = 28,
             ResetFore = 39,
 
-            Black = 30,
+    Black = 30,
             Red = 31,
             Green = 32,
             Yellow = 33,
@@ -35,7 +35,7 @@ public class SGR_Name {
             LightCyan = 96,
             White = 97,
 
-            ResetBG = 49,
+    ResetBG = 49,
             BlackBG = 40,
             RedBG = 41,
             GreenBG = 42,

@@ -154,11 +154,11 @@ public class MyColorAndFormatVisitor extends SysYParserBaseVisitor<Void> {
     }
 
     @Override
-    public Void visitStatementIVal(SysYParser.StatementIValContext ctx) {
+    public Void visitStatementLVal(SysYParser.StatementLValContext ctx) {
         newLine();
 
         isStatement = true;
-        Void ret = super.visitStatementIVal(ctx);
+        Void ret = super.visitStatementLVal(ctx);
         isStatement = false;
 
         return ret;
