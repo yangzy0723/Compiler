@@ -60,7 +60,7 @@ public class MyLLVMVisitor extends SysYParserBaseVisitor<LLVMValueRef> {
          */
         LLVMTypeRef functionType = LLVMFunctionType(returnType, LLVMVoidType(), 0, 0);
         LLVMValueRef function = LLVMAddFunction(module, functionName, functionType);
-        LLVMBasicBlockRef entryBlock = LLVMAppendBasicBlock(function, functionName + "_entry");
+        LLVMBasicBlockRef entryBlock = LLVMAppendBasicBlock(function, functionName + "Entry");
         LLVMPositionBuilderAtEnd(builder, entryBlock);
 
         globalScope.define(functionName, function);
