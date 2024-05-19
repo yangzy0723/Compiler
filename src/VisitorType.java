@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class MyTypeVisitor extends SysYParserBaseVisitor<Type> {
+public class VisitorType extends SysYParserBaseVisitor<Type> {
     public static boolean error;
 
     private final Scope globalScope = new Scope(null);

@@ -5,7 +5,7 @@ import java.util.Objects;
 import java.util.Stack;
 import java.util.Vector;
 
-public class MyColorAndFormatVisitor extends SysYParserBaseVisitor<Void> {
+public class VisitorColorAndFormat extends SysYParserBaseVisitor<Void> {
     public static int[] bracketColor = {SGR_Name.LightRed, SGR_Name.LightGreen, SGR_Name.LightYellow, SGR_Name.LightBlue, SGR_Name.LightMagenta, SGR_Name.LightCyan};
     public static String[] lefts = {"L_PAREN", "L_BRACKT", "L_BRACE"};
     public static String[] rights = {"R_PAREN", "R_BRACKT", "R_BRACE"};
