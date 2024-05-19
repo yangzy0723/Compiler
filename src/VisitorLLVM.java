@@ -16,9 +16,9 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
     //创建一个常量,这里是常数0
     LLVMValueRef zero = LLVMConstInt(i32Type, 0, /* signExtend */ 0);
 
-    private String targetFilePath;
-
+    private final String targetFilePath;
     private final Scope globalScope = new Scope(null);
+
     private Scope curScope = globalScope;
 
     VisitorLLVM(String targetFilePath) {
@@ -62,11 +62,12 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
         LLVMValueRef function = LLVMAddFunction(module, functionName, functionType);
         LLVMBasicBlockRef entryBlock = LLVMAppendBasicBlock(function, functionName + "Entry");
         LLVMPositionBuilderAtEnd(builder, entryBlock);
-
         globalScope.define(functionName, function);
+
         curScope = new Scope(curScope);
         LLVMValueRef ret = super.visitDefFunc(ctx);
         curScope = curScope.parent;
+
         return ret;
     }
 
@@ -79,11 +80,12 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
             // 全局变量
             if (curScope == globalScope)
                 pointer = LLVMAddGlobal(module, varType, "global_" + varName);
-            // 局部变量
+                // 局部变量
             else
                 pointer = LLVMBuildAlloca(builder, varType, "pointer_" + varName);
             // 有赋值语句
             if (varDef.ASSIGN() != null) {
+                // 不是声明为数组
                 if (varDef.initVal().L_BRACE() == null) {
                     LLVMValueRef initVal = visit(varDef.initVal().exp());
                     if (curScope == globalScope)
@@ -91,7 +93,7 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
                     else
                         LLVMBuildStore(builder, initVal, pointer);
                 }
-                // 是对数组的定义
+                // 是声明为数组
                 else {
 
                 }
@@ -124,7 +126,7 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
             // 全局变量
             if (curScope == globalScope)
                 pointer = LLVMAddGlobal(module, constType, "global_" + varName);
-            // 局部变量
+                // 局部变量
             else
                 pointer = LLVMBuildAlloca(builder, constType, "pointer_" + varName);
 
@@ -172,7 +174,7 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
         LLVMValueRef var = curScope.getSymbolFromName(varName);
         if (ctx.L_BRACKT() == null || ctx.L_BRACKT().isEmpty())
             return var;
-        // 对数组元素的某项赋值
+            // 对数组元素的某项赋值
         else {
             return null;
         }
@@ -211,22 +213,20 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
 
     @Override
     public LLVMValueRef visitExpressionUnaryOp(SysYParser.ExpressionUnaryOpContext ctx) {
-        String op = ctx.unaryOp().getText();
         LLVMValueRef expValue = visit(ctx.exp());
-        switch (op) {
-            case "+":
-                return expValue;
-            case "-":
-                return LLVMBuildNeg(builder, expValue, "tmp_");
-            case "!":
-                long value = LLVMConstIntGetZExtValue(expValue);
-                if (value == 0)
-                    return LLVMConstInt(i32Type, 1, 0);
-                else
-                    return LLVMConstInt(i32Type, 0, 0);
-            default:
-                throw new RuntimeException("Unexpected operator!");
+        if(ctx.unaryOp().PLUS() != null)
+            return expValue;
+        else if(ctx.unaryOp().MINUS() != null)
+            return LLVMBuildNeg(builder, expValue, "tmp_");
+        else if(ctx.unaryOp().NOT() != null) {
+            long value = LLVMConstIntGetZExtValue(expValue);
+            if (value == 0)
+                return LLVMConstInt(i32Type, 1, 0);
+            else
+                return LLVMConstInt(i32Type, 0, 0);
         }
+        else
+            throw new RuntimeException("Unexpected operator!");
     }
 
     // LLVMConstInt的第三个参数 bool sign_extend: 表示是否进行符号扩展。
