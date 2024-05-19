@@ -66,7 +66,6 @@ public class MyLLVMVisitor extends SysYParserBaseVisitor<LLVMValueRef> {
         globalScope.define(functionName, function);
         curScope = new Scope(curScope);
         LLVMValueRef ret = super.visitDefFunc(ctx);
-
         curScope = curScope.parent;
         return ret;
     }
@@ -129,7 +128,7 @@ public class MyLLVMVisitor extends SysYParserBaseVisitor<LLVMValueRef> {
             else
                 pointer = LLVMBuildAlloca(builder, constType, "pointer_" + varName);
 
-            // 一定有赋值语句，不是对数组的定义
+            // 一定有赋值语句，不是声明为数组
             if (constDef.constInitVal().L_BRACE() == null) {
                 LLVMValueRef initVal = visit(constDef.constInitVal().constExp());
                 if (curScope == globalScope)
@@ -137,7 +136,7 @@ public class MyLLVMVisitor extends SysYParserBaseVisitor<LLVMValueRef> {
                 else
                     LLVMBuildStore(builder, initVal, pointer);
             }
-            // 是对数组的定义
+            // 是声明为数组
             else {
 
             }
@@ -155,9 +154,9 @@ public class MyLLVMVisitor extends SysYParserBaseVisitor<LLVMValueRef> {
 
     @Override
     public LLVMValueRef visitStatementLVal(SysYParser.StatementLValContext ctx) {
-        LLVMValueRef lValue = visit(ctx.lVal());
-        LLVMValueRef rValue = visit(ctx.exp());
-        LLVMBuildStore(builder, rValue, lValue);
+        LLVMValueRef leftValue = visit(ctx.lVal());
+        LLVMValueRef rightValue = visit(ctx.exp());
+        LLVMBuildStore(builder, rightValue, leftValue);
         return null;
     }
 
