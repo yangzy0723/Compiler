@@ -245,6 +245,47 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
     }
 
     @Override
+    public LLVMValueRef visitStatementIf(SysYParser.StatementIfContext ctx) {
+        LLVMBasicBlockRef condBlock = LLVMAppendBasicBlock(curFunction, "condition");
+        LLVMBasicBlockRef trueBranch = LLVMAppendBasicBlock(curFunction, "trueBranch");
+        LLVMBasicBlockRef falseBranch = null;
+        if(ctx.statementElse() != null)
+            falseBranch = LLVMAppendBasicBlock(curFunction, "falseBranch");
+        LLVMBasicBlockRef exit = LLVMAppendBasicBlock(curFunction, "exit");
+
+        // 无条件跳转到condBlock计算布尔值，进而考虑下一步跳转
+        LLVMBuildBr(builder, condBlock);
+        LLVMPositionBuilderAtEnd(builder, condBlock);
+        LLVMValueRef condVal = visit(ctx.cond());
+        condVal = LLVMBuildZExt(builder, condVal, i32Type, "condValue_");
+        condVal = LLVMBuildICmp(builder, LLVMIntNE, condVal, zero, "tmp_");
+        if (falseBranch == null)
+            LLVMBuildCondBr(builder, condVal, trueBranch, exit);
+        else
+            LLVMBuildCondBr(builder, condVal, trueBranch, falseBranch);
+
+        // 处理bool值为true的Statement产生的语句
+        LLVMPositionBuilderAtEnd(builder, trueBranch);
+        visit(ctx.statement());
+        LLVMBuildBr(builder, exit);
+
+        // 处理bool值为false的Statement产生的语句
+        if (ctx.statementElse() != null) {
+           LLVMPositionBuilderAtEnd(builder, falseBranch);
+           visit(ctx.statementElse());
+           LLVMBuildBr(builder, exit);
+        }
+
+        LLVMPositionBuilderAtEnd(builder, exit);
+        return null;
+    }
+
+    @Override
+    public LLVMValueRef visitStatementElse(SysYParser.StatementElseContext ctx) {
+        return visit(ctx.statement());
+    }
+
+    @Override
     public LLVMValueRef visitExpressionPlusMinus(SysYParser.ExpressionPlusMinusContext ctx) {
         LLVMValueRef leftValue = visit(ctx.exp(0));
         LLVMValueRef rightValue = visit(ctx.exp(1));
@@ -284,6 +325,53 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
             else
                 return LLVMConstInt(i32Type, 0, 0);
         }
+        else
+            throw new RuntimeException("Unexpected operator!");
+    }
+
+    @Override
+    public LLVMValueRef visitCondOr(SysYParser.CondOrContext ctx) {
+        LLVMValueRef leftValue = LLVMBuildZExt(builder, visit(ctx.cond(0)), i32Type, "tmp_");
+        LLVMValueRef rightValue = LLVMBuildZExt(builder, visit(ctx.cond(1)), i32Type, "tmp_");
+        return LLVMBuildOr(builder,  leftValue, rightValue, "tmp_");
+    }
+
+    @Override
+    public LLVMValueRef visitCondAnd(SysYParser.CondAndContext ctx) {
+        LLVMValueRef leftValue = LLVMBuildZExt(builder, visit(ctx.cond(0)), i32Type, "tmp_");
+        LLVMValueRef rightValue = LLVMBuildZExt(builder, visit(ctx.cond(1)), i32Type, "tmp_");
+        return LLVMBuildAnd(builder,  leftValue, rightValue, "tmp_");
+    }
+
+    @Override
+    public LLVMValueRef visitCondExp(SysYParser.CondExpContext ctx) {
+        return visit(ctx.exp());
+    }
+
+    @Override
+    public LLVMValueRef visitCondCompare(SysYParser.CondCompareContext ctx) {
+        LLVMValueRef leftValue = LLVMBuildZExt(builder, visit(ctx.cond(0)), i32Type, "tmp_");
+        LLVMValueRef rightValue = LLVMBuildZExt(builder, visit(ctx.cond(1)), i32Type, "tmp_");
+        if(ctx.GT() != null)
+            return LLVMBuildICmp(builder, LLVMIntSGT, leftValue, rightValue, "tmp_");
+        else if(ctx.GE() != null)
+            return LLVMBuildICmp(builder, LLVMIntSGE, leftValue, rightValue, "tmp_");
+        else if(ctx.LT() != null)
+            return LLVMBuildICmp(builder, LLVMIntSLT, leftValue, rightValue, "tmp_");
+        else if(ctx.LE() != null)
+            return LLVMBuildICmp(builder, LLVMIntSLE, leftValue, rightValue, "tmp_");
+        else
+            throw new RuntimeException("Unexpected operator!");
+    }
+
+    @Override
+    public LLVMValueRef visitCondEqual(SysYParser.CondEqualContext ctx) {
+        LLVMValueRef leftValue = visit(ctx.cond(0));
+        LLVMValueRef rightValue = visit(ctx.cond(1));
+        if(ctx.EQ() != null)
+            return LLVMBuildICmp(builder, LLVMIntEQ,  leftValue, rightValue, "tmp_");
+        else if(ctx.NEQ() != null)
+            return LLVMBuildICmp(builder, LLVMIntNE,  leftValue, rightValue, "tmp_");
         else
             throw new RuntimeException("Unexpected operator!");
     }
