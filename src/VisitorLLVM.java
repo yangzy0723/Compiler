@@ -44,8 +44,8 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
     @Override
     public LLVMValueRef visitCompUnit(SysYParser.CompUnitContext ctx) {
         LLVMValueRef ret = super.visitCompUnit(ctx);
-//        LLVMPrintModuleToFile(module, targetFilePath, new BytePointer());
-        LLVMDumpModule(module);
+        LLVMPrintModuleToFile(module, targetFilePath, new BytePointer());
+//        LLVMDumpModule(module);
         return ret;
     }
 
@@ -77,7 +77,7 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
          * 3. unsigned paramCount：表示函数参数的数量，即 paramTypes 数组的长度。
          * 4. bool isVarArg：表示函数是否为可变参数函数。如果为 true，则表示函数接受可变数量的参数；如果为 false，则表示函数接受固定数量的参数。
          */
-        LLVMTypeRef functionType = LLVMFunctionType(returnType, LLVMVoidType(), paramsNum, 0);
+        LLVMTypeRef functionType = LLVMFunctionType(returnType, paramsType, paramsNum, 0);
         LLVMValueRef function = LLVMAddFunction(module, functionName, functionType);
         LLVMBasicBlockRef entryBlock = LLVMAppendBasicBlock(function, functionName + "Entry");
         LLVMPositionBuilderAtEnd(builder, entryBlock);
