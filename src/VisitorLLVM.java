@@ -28,6 +28,7 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
     private final Map<String, LLVMTypeRef> funcReturnTypes = new HashMap<>();
 
     private Scope curScope = globalScope;
+    private Boolean hasReturnStatement = false;
     private LLVMValueRef curFunction = null;
 
     VisitorLLVM(String targetFilePath) {
@@ -86,6 +87,7 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
 
         curScope = new Scope(curScope);
         curFunction = function;
+        hasReturnStatement = false;
         for (int i = 0; i < paramsNum; i++) {
             SysYParser.FuncFParamContext funcFParamContext = ctx.funcFParams().funcFParam(i);
             String paramName = funcFParamContext.IDENT().getText();
@@ -97,11 +99,14 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
         LLVMValueRef ret = super.visitDefFunc(ctx);
         curScope = curScope.parent;
         curFunction = null;
+        if (!hasReturnStatement)
+            LLVMBuildRetVoid(builder);
         return ret;
     }
 
     @Override
     public LLVMValueRef visitStatementReturnWithExp(SysYParser.StatementReturnWithExpContext ctx) {
+        hasReturnStatement = true;
         LLVMValueRef result = visit(ctx.exp());
         LLVMBuildRet(builder, result);
         return null;
@@ -109,6 +114,7 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
 
     @Override
     public LLVMValueRef visitStatementReturnWithoutExp(SysYParser.StatementReturnWithoutExpContext ctx) {
+        hasReturnStatement = true;
         LLVMBuildRetVoid(builder);
         return null;
     }
