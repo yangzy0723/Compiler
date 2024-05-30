@@ -99,12 +99,12 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
             LLVMBuildStore(builder, LLVMGetParam(function, i), varPointer);
             curScope.define(paramName, varPointer);
         }
-        LLVMValueRef ret = super.visitDefFunc(ctx);
+        visit(ctx.block());
         curScope = curScope.parent;
         curFunction = null;
         if (!hasReturnStatement)
             LLVMBuildRetVoid(builder);
-        return ret;
+        return null;
     }
 
     @Override
