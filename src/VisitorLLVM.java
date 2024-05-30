@@ -375,6 +375,7 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
         LLVMBasicBlockRef rightBlock = LLVMAppendBasicBlock(curFunction, "andRightBlock");
         LLVMBasicBlockRef afterBlock = LLVMAppendBasicBlock(curFunction, "afterBlock");
         LLVMValueRef result = LLVMBuildAlloca(builder, i32Type, "result");
+        LLVMBuildBr(builder, leftBlock);
 
         LLVMPositionBuilderAtEnd(builder, leftBlock);
         LLVMValueRef leftValue = LLVMBuildZExt(builder, visit(ctx.cond(0)), i32Type, "tmp_");
