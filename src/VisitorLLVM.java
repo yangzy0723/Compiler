@@ -8,6 +8,7 @@ import org.bytedeco.llvm.LLVM.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Stack;
 
 import static org.bytedeco.llvm.global.LLVM.*;
 
@@ -26,6 +27,8 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
     private final String targetFilePath;
     private final Scope globalScope = new Scope(null);
     private final Map<String, LLVMTypeRef> funcReturnTypes = new HashMap<>();
+    private final Stack<LLVMBasicBlockRef> breakStack = new Stack<>();
+    private final Stack<LLVMBasicBlockRef> continueStack = new Stack<>();
 
     private Scope curScope = globalScope;
     private Boolean hasReturnStatement = false;
@@ -283,6 +286,49 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
     @Override
     public LLVMValueRef visitStatementElse(SysYParser.StatementElseContext ctx) {
         return visit(ctx.statement());
+    }
+
+    @Override
+    public LLVMValueRef visitStatementWhile(SysYParser.StatementWhileContext ctx) {
+        LLVMBasicBlockRef condBlock = LLVMAppendBasicBlock(curFunction, "condition");
+        LLVMBasicBlockRef trueBranch = LLVMAppendBasicBlock(curFunction, "trueBranch");
+        LLVMBasicBlockRef exit = LLVMAppendBasicBlock(curFunction, "exit");
+
+        // 无条件跳转到condBlock计算布尔值，进而考虑下一步跳转
+        LLVMBuildBr(builder, condBlock);
+        LLVMPositionBuilderAtEnd(builder, condBlock);
+        LLVMValueRef condVal = visit(ctx.cond());
+        condVal = LLVMBuildZExt(builder, condVal, i32Type, "condValue_");
+        condVal = LLVMBuildICmp(builder, LLVMIntNE, condVal, zero, "tmp_");
+        LLVMBuildCondBr(builder, condVal, trueBranch, exit);
+
+        // 执行循环体
+        LLVMPositionBuilderAtEnd(builder, trueBranch);
+        breakStack.push(exit);
+        continueStack.push(condBlock);
+        visit(ctx.statement());
+        continueStack.pop();
+        breakStack.pop();
+
+        LLVMBuildBr(builder, condBlock);
+
+        LLVMPositionBuilderAtEnd(builder, exit);
+
+        return null;
+    }
+
+    @Override
+    public LLVMValueRef visitStatementBreak(SysYParser.StatementBreakContext ctx) {
+        LLVMBasicBlockRef exit = breakStack.peek();
+        LLVMBuildBr(builder, exit);
+        return null;
+    }
+
+    @Override
+    public LLVMValueRef visitStatementContinue(SysYParser.StatementContinueContext ctx) {
+        LLVMBasicBlockRef condBlock = continueStack.peek();
+        LLVMBuildBr(builder, condBlock);
+        return null;
     }
 
     @Override
