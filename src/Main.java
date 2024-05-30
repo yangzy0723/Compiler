@@ -12,10 +12,10 @@ public class Main {
             System.err.println("input path is required");
         if (args.length < 2)
             System.err.println("output path is required");
-//        String source = "tests/test1.sysy";
-//        String target = "tests/out.ll";
-        String source = args[0];
-        String target = args[1];
+        String source = "tests/test1.sysy";
+        String target = "tests/out.ll";
+//        String source = args[0];
+//        String target = args[1];
         CharStream input = CharStreams.fromFileName(source);
         SysYLexer sysYLexer = new SysYLexer(input);
 
