@@ -99,12 +99,12 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
             LLVMBuildStore(builder, LLVMGetParam(function, i), varPointer);
             curScope.define(paramName, varPointer);
         }
-        visit(ctx.block());
+        LLVMValueRef ret = super.visitDefFunc(ctx);
         curScope = curScope.parent;
         curFunction = null;
         if (!hasReturnStatement)
             LLVMBuildRetVoid(builder);
-        return null;
+        return ret;
     }
 
     @Override
@@ -249,37 +249,31 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
 
     @Override
     public LLVMValueRef visitStatementIf(SysYParser.StatementIfContext ctx) {
-        LLVMBasicBlockRef condBlock = LLVMAppendBasicBlock(curFunction, "condition");
-        LLVMBasicBlockRef trueBranch = LLVMAppendBasicBlock(curFunction, "trueBranch");
-        LLVMBasicBlockRef falseBranch = null;
-        if(ctx.statementElse() != null)
-            falseBranch = LLVMAppendBasicBlock(curFunction, "falseBranch");
-        LLVMBasicBlockRef exit = LLVMAppendBasicBlock(curFunction, "exit");
-
-        // 无条件跳转到condBlock计算布尔值，进而考虑下一步跳转
-        LLVMBuildBr(builder, condBlock);
-        LLVMPositionBuilderAtEnd(builder, condBlock);
-        LLVMValueRef condVal = visit(ctx.cond());
+        LLVMValueRef condVal = this.visit(ctx.cond());
         condVal = LLVMBuildZExt(builder, condVal, i32Type, "condValue_");
         condVal = LLVMBuildICmp(builder, LLVMIntNE, condVal, zero, "tmp_");
-        if (falseBranch == null)
-            LLVMBuildCondBr(builder, condVal, trueBranch, exit);
-        else
-            LLVMBuildCondBr(builder, condVal, trueBranch, falseBranch);
+        LLVMBasicBlockRef trueBlock = LLVMAppendBasicBlock(curFunction, "trueBlock");
+        LLVMBasicBlockRef falseBlock = LLVMAppendBasicBlock(curFunction, "falseBlock");
+        LLVMBasicBlockRef nextBlockIf = LLVMAppendBasicBlock(curFunction, "nextBlock");
 
-        // 处理bool值为true的Statement产生的语句
-        LLVMPositionBuilderAtEnd(builder, trueBranch);
-        visit(ctx.statement());
-        LLVMBuildBr(builder, exit);
+        //创建分支选择
+        LLVMBuildCondBr(builder, condVal, trueBlock, falseBlock);
 
-        // 处理bool值为false的Statement产生的语句
+        //trueBlock追加
+        LLVMPositionBuilderAtEnd(builder, trueBlock);
+        //访问true的stmt
+        this.visit(ctx.statement());
+        //无条件跳转
+        LLVMBuildBr(builder, nextBlockIf);
+        //falseBlock追加
+        LLVMPositionBuilderAtEnd(builder, falseBlock);
+        //如果有else：访问false的stmt
         if (ctx.statementElse() != null) {
-           LLVMPositionBuilderAtEnd(builder, falseBranch);
-           visit(ctx.statementElse());
-           LLVMBuildBr(builder, exit);
+            this.visit(ctx.statementElse().statement());
         }
-
-        LLVMPositionBuilderAtEnd(builder, exit);
+        LLVMBuildBr(builder, nextBlockIf);
+        //剩下的内容应该追加在nextBlock的后面
+        LLVMPositionBuilderAtEnd(builder, nextBlockIf);
         return null;
     }
 
@@ -377,16 +371,50 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
 
     @Override
     public LLVMValueRef visitCondOr(SysYParser.CondOrContext ctx) {
+        LLVMBasicBlockRef leftBlock = LLVMAppendBasicBlock(curFunction, "andLeftBlock");
+        LLVMBasicBlockRef rightBlock = LLVMAppendBasicBlock(curFunction, "andRightBlock");
+        LLVMBasicBlockRef afterBlock = LLVMAppendBasicBlock(curFunction, "afterBlock");
+        LLVMValueRef result = LLVMBuildAlloca(builder, i32Type, "result");
+
+        LLVMPositionBuilderAtEnd(builder, leftBlock);
         LLVMValueRef leftValue = LLVMBuildZExt(builder, visit(ctx.cond(0)), i32Type, "tmp_");
+        LLVMValueRef leftResult = LLVMBuildICmp(builder, LLVMIntNE, leftValue, zero, "leftResult");
+        LLVMBuildStore(builder, leftValue, result);
+        LLVMBuildCondBr(builder, leftResult, afterBlock, rightBlock);
+
+        LLVMPositionBuilderAtEnd(builder, rightBlock);
         LLVMValueRef rightValue = LLVMBuildZExt(builder, visit(ctx.cond(1)), i32Type, "tmp_");
-        return LLVMBuildOr(builder,  leftValue, rightValue, "tmp_");
+        LLVMValueRef rightResult = LLVMBuildICmp(builder, LLVMIntNE, rightValue, zero, "rightResult");
+        LLVMBuildStore(builder, rightValue, result);
+        LLVMBuildBr(builder, afterBlock);
+
+        LLVMPositionBuilderAtEnd(builder, afterBlock);
+
+        return LLVMBuildLoad(builder, result, "loadFromResult");
     }
 
     @Override
     public LLVMValueRef visitCondAnd(SysYParser.CondAndContext ctx) {
+        LLVMBasicBlockRef leftBlock = LLVMAppendBasicBlock(curFunction, "orLeftBlock");
+        LLVMBasicBlockRef rightBlock = LLVMAppendBasicBlock(curFunction, "orRightBlock");
+        LLVMBasicBlockRef afterBlock = LLVMAppendBasicBlock(curFunction, "afterBlock");
+        LLVMValueRef result = LLVMBuildAlloca(builder, i32Type, "result");
+        LLVMBuildBr(builder, leftBlock);
+
+        LLVMPositionBuilderAtEnd(builder, leftBlock);
         LLVMValueRef leftValue = LLVMBuildZExt(builder, visit(ctx.cond(0)), i32Type, "tmp_");
+        LLVMValueRef leftResult = LLVMBuildICmp(builder, LLVMIntNE, leftValue, zero, "leftResult");
+        LLVMBuildStore(builder, leftValue, result);
+        LLVMBuildCondBr(builder, leftResult, rightBlock, afterBlock);
+
+        LLVMPositionBuilderAtEnd(builder, rightBlock);
         LLVMValueRef rightValue = LLVMBuildZExt(builder, visit(ctx.cond(1)), i32Type, "tmp_");
-        return LLVMBuildAnd(builder,  leftValue, rightValue, "tmp_");
+        LLVMValueRef rightResult = LLVMBuildICmp(builder, LLVMIntNE, rightValue, zero, "rightResult");
+        LLVMBuildStore(builder, rightValue, result);
+        LLVMBuildBr(builder, afterBlock);
+
+        LLVMPositionBuilderAtEnd(builder, afterBlock);
+        return LLVMBuildLoad(builder, result, "loadFromResult");
     }
 
     @Override

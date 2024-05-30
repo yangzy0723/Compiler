@@ -1,5 +1,7 @@
 int main() {
-	if(2)
+	int a;
+	if(1 || a)
+		return 1;
+	else
 		return 0;
-	return 1;
 }
