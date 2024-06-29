@@ -4,6 +4,8 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 
 public class Main {
@@ -12,10 +14,11 @@ public class Main {
             System.err.println("input path is required");
         if (args.length < 2)
             System.err.println("output path is required");
-        String source = "tests/test1.sysy";
-        String target = "tests/out.ll";
-//        String source = args[0];
-//        String target = args[1];
+//        String source = "tests/test1.sysy";
+//        String target1 = "tests/out.ll";
+//        String target = "tests/out.asm";
+        String source = args[0];
+        String target = args[1];
         CharStream input = CharStreams.fromFileName(source);
         SysYLexer sysYLexer = new SysYLexer(input);
 
@@ -51,8 +54,14 @@ public class Main {
 //        if (!VisitorType.error)
 //            System.err.println("No semantic errors in the program!");
 
-        VisitorLLVM myLLVMVisitor = new VisitorLLVM(target);
+        VisitorLLVM myLLVMVisitor = new VisitorLLVM(null);
         myLLVMVisitor.visit(tree);
+
+        String asm = AsmBuilder.buildAsmCode(myLLVMVisitor.getModule());
+
+        BufferedWriter writer = new BufferedWriter(new FileWriter(target));
+        writer.write(asm);
+        writer.close();
     }
 
     private static void printSysYTokenInformation(Token t) {
