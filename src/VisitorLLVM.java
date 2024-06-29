@@ -15,7 +15,7 @@ import static org.bytedeco.llvm.global.LLVM.*;
 
 public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
     //创建module
-    LLVMModuleRef module = LLVMModuleCreateWithName("module");
+    public static LLVMModuleRef module = LLVMModuleCreateWithName("module");
     //初始化IRBuilder，后续将使用这个builder去生成LLVM IR
     LLVMBuilderRef builder = LLVMCreateBuilder();
     //考虑到我们的语言中仅存在int一个基本类型，可以通过下面的语句为LLVM的int型重命名方便以后使用
