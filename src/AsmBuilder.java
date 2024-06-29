@@ -2,8 +2,6 @@ import org.bytedeco.llvm.LLVM.LLVMBasicBlockRef;
 import org.bytedeco.llvm.LLVM.LLVMModuleRef;
 import org.bytedeco.llvm.LLVM.LLVMValueRef;
 
-import java.nio.charset.StandardCharsets;
-
 import static org.bytedeco.llvm.global.LLVM.*;
 
 public class AsmBuilder {
@@ -36,14 +34,12 @@ public class AsmBuilder {
                     int opcode = LLVMGetInstructionOpcode(inst);
                     LLVMValueRef op1 = null, op2 = null, op3 = null;
                     int operandNum = LLVMGetNumOperands(inst);
-                    if(operandNum == 1) {
+                    if (operandNum == 1) {
                         op1 = LLVMGetOperand(inst, 0);
-                    }
-                    else if (operandNum == 2) {
+                    } else if (operandNum == 2) {
                         op1 = LLVMGetOperand(inst, 0);
                         op2 = LLVMGetOperand(inst, 1);
-                    }
-                    else if (operandNum == 3) {
+                    } else if (operandNum == 3) {
                         op1 = LLVMGetOperand(inst, 0);
                         op2 = LLVMGetOperand(inst, 1);
                         op3 = LLVMGetOperand(inst, 2);

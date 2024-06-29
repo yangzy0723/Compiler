@@ -14,13 +14,13 @@ import static org.bytedeco.llvm.global.LLVM.*;
 
 
 public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
+    private final String targetFilePath;
+    private final Scope globalScope = new Scope(null);
+    private final Map<String, LLVMTypeRef> funcReturnTypes = new HashMap<>();
+    private final Stack<LLVMBasicBlockRef> breakStack = new Stack<>();
+    private final Stack<LLVMBasicBlockRef> continueStack = new Stack<>();
     //创建module
     LLVMModuleRef module = LLVMModuleCreateWithName("module");
-
-    public LLVMModuleRef getModule() {
-        return module;
-    }
-
     //初始化IRBuilder，后续将使用这个builder去生成LLVM IR
     LLVMBuilderRef builder = LLVMCreateBuilder();
     //考虑到我们的语言中仅存在int一个基本类型，可以通过下面的语句为LLVM的int型重命名方便以后使用
@@ -28,17 +28,9 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
     LLVMTypeRef voidType = LLVMVoidType();
     //创建一个常量,这里是常数0
     LLVMValueRef zero = LLVMConstInt(i32Type, 0, /* signExtend */ 0);
-
-    private final String targetFilePath;
-    private final Scope globalScope = new Scope(null);
-    private final Map<String, LLVMTypeRef> funcReturnTypes = new HashMap<>();
-    private final Stack<LLVMBasicBlockRef> breakStack = new Stack<>();
-    private final Stack<LLVMBasicBlockRef> continueStack = new Stack<>();
-
     private Scope curScope = globalScope;
     private Boolean hasReturnStatement = false;
     private LLVMValueRef curFunction = null;
-
     VisitorLLVM(String targetFilePath) {
         this.targetFilePath = targetFilePath;
 
@@ -50,10 +42,14 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
         LLVMInitializeNativeTarget();
     }
 
+    public LLVMModuleRef getModule() {
+        return module;
+    }
+
     @Override
     public LLVMValueRef visitCompUnit(SysYParser.CompUnitContext ctx) {
         LLVMValueRef ret = super.visitCompUnit(ctx);
-        if(targetFilePath != null)
+        if (targetFilePath != null)
             LLVMPrintModuleToFile(module, targetFilePath, new BytePointer());
 //        LLVMDumpModule(module);
         return ret;
@@ -140,7 +136,7 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
             args.put(i, visit(ctx.funcRParams().param(i)));
         if (funcReturnTypes.get(funcName) == voidType)
             return LLVMBuildCall(builder, function, args, argNum, "");
-        else if(funcReturnTypes.get(funcName) == i32Type)
+        else if (funcReturnTypes.get(funcName) == i32Type)
             return LLVMBuildCall(builder, function, args, argNum, "tmp_");
         else
             throw new RuntimeException("Unexpected function name!");
@@ -155,7 +151,7 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
             // 全局变量
             if (curScope == globalScope)
                 pointer = LLVMAddGlobal(module, varType, "global_" + varName);
-            // 局部变量
+                // 局部变量
             else
                 pointer = LLVMBuildAlloca(builder, varType, "pointer_" + varName);
             // 有赋值语句
@@ -201,7 +197,7 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
             // 全局变量
             if (curScope == globalScope)
                 pointer = LLVMAddGlobal(module, constType, "global_" + varName);
-            // 局部变量
+                // 局部变量
             else
                 pointer = LLVMBuildAlloca(builder, constType, "pointer_" + varName);
 
@@ -242,7 +238,7 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
         LLVMValueRef var = curScope.getSymbolFromName(varName);
         if (ctx.L_BRACKT() == null || ctx.L_BRACKT().isEmpty())
             return var;
-        // 对数组元素的某项赋值
+            // 对数组元素的某项赋值
         else {
             return null;
         }
@@ -260,12 +256,12 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
         condVal = LLVMBuildICmp(builder, LLVMIntNE, condVal, zero, "tmp_");
         LLVMBasicBlockRef trueBranch = LLVMAppendBasicBlock(curFunction, "true_branch");
         LLVMBasicBlockRef falseBranch = null;
-        if(ctx.statementElse() != null)
+        if (ctx.statementElse() != null)
             falseBranch = LLVMAppendBasicBlock(curFunction, "false_branch");
         LLVMBasicBlockRef nextBlock = LLVMAppendBasicBlock(curFunction, "next");
 
         // 创建分支选择
-        if(ctx.statementElse() == null)
+        if (ctx.statementElse() == null)
             LLVMBuildCondBr(builder, condVal, trueBranch, nextBlock);
         else
             LLVMBuildCondBr(builder, condVal, trueBranch, falseBranch);
@@ -361,18 +357,17 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
     @Override
     public LLVMValueRef visitExpressionUnaryOp(SysYParser.ExpressionUnaryOpContext ctx) {
         LLVMValueRef expValue = visit(ctx.exp());
-        if(ctx.unaryOp().PLUS() != null)
+        if (ctx.unaryOp().PLUS() != null)
             return expValue;
-        else if(ctx.unaryOp().MINUS() != null)
+        else if (ctx.unaryOp().MINUS() != null)
             return LLVMBuildNeg(builder, expValue, "tmp_");
-        else if(ctx.unaryOp().NOT() != null) {
+        else if (ctx.unaryOp().NOT() != null) {
             long value = LLVMConstIntGetZExtValue(expValue);
             if (value == 0)
                 return LLVMConstInt(i32Type, 1, 0);
             else
                 return LLVMConstInt(i32Type, 0, 0);
-        }
-        else
+        } else
             throw new RuntimeException("Unexpected operator!");
     }
 
@@ -431,13 +426,13 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
     public LLVMValueRef visitCondCompare(SysYParser.CondCompareContext ctx) {
         LLVMValueRef leftValue = LLVMBuildZExt(builder, visit(ctx.cond(0)), i32Type, "tmp_");
         LLVMValueRef rightValue = LLVMBuildZExt(builder, visit(ctx.cond(1)), i32Type, "tmp_");
-        if(ctx.GT() != null)
+        if (ctx.GT() != null)
             return LLVMBuildICmp(builder, LLVMIntSGT, leftValue, rightValue, "tmp_");
-        else if(ctx.GE() != null)
+        else if (ctx.GE() != null)
             return LLVMBuildICmp(builder, LLVMIntSGE, leftValue, rightValue, "tmp_");
-        else if(ctx.LT() != null)
+        else if (ctx.LT() != null)
             return LLVMBuildICmp(builder, LLVMIntSLT, leftValue, rightValue, "tmp_");
-        else if(ctx.LE() != null)
+        else if (ctx.LE() != null)
             return LLVMBuildICmp(builder, LLVMIntSLE, leftValue, rightValue, "tmp_");
         else
             throw new RuntimeException("Unexpected operator!");
@@ -447,10 +442,10 @@ public class VisitorLLVM extends SysYParserBaseVisitor<LLVMValueRef> {
     public LLVMValueRef visitCondEqual(SysYParser.CondEqualContext ctx) {
         LLVMValueRef leftValue = visit(ctx.cond(0));
         LLVMValueRef rightValue = visit(ctx.cond(1));
-        if(ctx.EQ() != null)
-            return LLVMBuildICmp(builder, LLVMIntEQ,  leftValue, rightValue, "tmp_");
-        else if(ctx.NEQ() != null)
-            return LLVMBuildICmp(builder, LLVMIntNE,  leftValue, rightValue, "tmp_");
+        if (ctx.EQ() != null)
+            return LLVMBuildICmp(builder, LLVMIntEQ, leftValue, rightValue, "tmp_");
+        else if (ctx.NEQ() != null)
+            return LLVMBuildICmp(builder, LLVMIntNE, leftValue, rightValue, "tmp_");
         else
             throw new RuntimeException("Unexpected operator!");
     }
