@@ -29,5 +29,6 @@ public class AsmBuilder {
                 }
             }
         }
+        return null;
     }
 }
