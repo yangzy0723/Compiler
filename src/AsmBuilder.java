@@ -50,7 +50,7 @@ public class AsmBuilder {
 
                     int operandNum = LLVMGetNumOperands(inst);
 
-                    LLVMValueRef op1 = null, op2 = null, op3 = null;
+                    LLVMValueRef op1 = null, op2 = null;
                     if (operandNum == 1) {
                         op1 = LLVMGetOperand(inst, 0);
                     } else if (operandNum == 2) {
@@ -63,153 +63,154 @@ public class AsmBuilder {
                      *  像这种语句，其inst本身其实就是%pointer_b的引用，也是定义了一个新变量；
                      *  System.out.println(LLVMGetValueName(inst).getString()); 得到pointer_b
                      */
-                    if (opcode == LLVMAlloca) {
-                        stack_pointers.put(inst, count++);
-                    }
-                    /**
-                     *  store i32 3, i32* %c, align 4
-                     *  store i32 %tmp_2, i32* @b, align 4
-                     */
-                    else if (opcode == LLVMStore) {
-                        // 将常数存入目标地址
-                        if (LLVMIsAConstant(op1) != null) {
-                            // 目标地址是全局变量
-                            if (global_value.contains(op2)) {
-                                asm1op("li", "t0", String.valueOf(LLVMConstIntGetZExtValue(op1)));
-                                asm1op("la", "t1", LLVMGetValueName(op2).getString());
-                                asm1op("sw", "t0", "0(t1)");
-                            }
-                            // 目标地址是普通栈帧
-                            else {
-                                asm1op("li", "t0", String.valueOf(LLVMConstIntGetZExtValue(op1)));
-                                asm1op("sw", "t0", stack_pointers.get(op2) * 4 + "(sp)");
-                            }
-                        }
-                        // 将寄存器中数存入目标地址
-                        else {
-                            // 目标地址是全局变量
-                            if (global_value.contains(op2)) {
-                                asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
-                                asm1op("la", "t1", LLVMGetValueName(op2).getString());
-                                asm1op("sw", "t0", "0(t1)");
-                            }
-                            // 目标地址是普通栈帧
-                            else {
-                                asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
-                                asm1op("sw", "t0", stack_pointers.get(op2) * 4 + "(sp)");
-                            }
-                        }
-                    }
-                    /**
-                     *   %a = load i32, i32* @global_a, align 4
-                     *   %b = load i32, i32* %pointer_b, align 4
-                     */
-                    else if (opcode == LLVMLoad) {
-                        stack_pointers.put(inst, count++);
-                        // 从全局变量中提出数，存在寄存器中
-                        if (global_value.contains(op1))
-                            asm1op("lw", "t0", LLVMGetValueName(op1).getString());
-                        // 从栈帧提出数，存在寄存器中
-                        else
-                            asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
-                        asm1op("sw", "t0", stack_pointers.get(inst) * 4 + "(sp)");
-                    }
-                    else if (opcode == LLVMAdd) {
-                        stack_pointers.put(inst, count++);
-                        if (LLVMIsAConstant(op1) != null) {
-                            asm1op("li", "t0", String.valueOf(LLVMConstIntGetZExtValue(op1)));
-                            asm1op("lw", "t1", stack_pointers.get(op2) * 4 + "(sp)");
-                            asm2op("add", "t0", "t0", "t1");
-                        }
-                        else if (LLVMIsAConstant(op2) != null) {
-                            asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
-                            asm1op("li", "t1", String.valueOf(LLVMConstIntGetZExtValue(op2)));
-                            asm2op("add", "t0", "t0", "t1");
-                        }
-                        else {
-                            asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
-                            asm1op("lw", "t1", stack_pointers.get(op2) * 4 + "(sp)");
-                            asm2op("add", "t0", "t0", "t1");
-                        }
-                        asm1op("sw", "t0", stack_pointers.get(inst) * 4 + "(sp)");
-                    }
-                    else if (opcode == LLVMMul) {
-                        stack_pointers.put(inst, count++);
-                        if (LLVMIsAConstant(op1) != null) {
-                            asm1op("li", "t0", String.valueOf(LLVMConstIntGetZExtValue(op1)));
-                            asm1op("lw", "t1", stack_pointers.get(op2) * 4 + "(sp)");
-                            asm2op("mul", "t0", "t0", "t1");
-                        }
-                        else if (LLVMIsAConstant(op2) != null) {
-                            asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
-                            asm1op("li", "t1", String.valueOf(LLVMConstIntGetZExtValue(op2)));
-                            asm2op("mul", "t0", "t0", "t1");
-                        }
-                        else {
-                            asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
-                            asm1op("lw", "t1", stack_pointers.get(op2) * 4 + "(sp)");
-                            asm2op("mul", "t0", "t0", "t1");
-                        }
-                        asm1op("sw", "t0", stack_pointers.get(inst) * 4 + "(sp)");
-                    }
-                    else if (opcode == LLVMSub) {
-                        stack_pointers.put(inst, count++);
-                        if (LLVMIsAConstant(op1) != null) {
-                            asm1op("li", "t0", String.valueOf(LLVMConstIntGetZExtValue(op1)));
-                            asm1op("lw", "t1", stack_pointers.get(op2) * 4 + "(sp)");
-                            asm2op("sub", "t0", "t0", "t1");
-                        }
-                        else if (LLVMIsAConstant(op2) != null) {
-                            asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
-                            asm1op("li", "t1", String.valueOf(LLVMConstIntGetZExtValue(op2)));
-                            asm2op("sub", "t0", "t0", "t1");
-                        }
-                        else {
-                            asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
-                            asm1op("lw", "t1", stack_pointers.get(op2) * 4 + "(sp)");
-                            asm2op("sub", "t0", "t0", "t1");
-                        }
-                        asm1op("sw", "t0", stack_pointers.get(inst) * 4 + "(sp)");
-                    }
-                    else if (opcode == LLVMSDiv) {
-                        stack_pointers.put(inst, count++);
-                        if (LLVMIsAConstant(op1) != null) {
-                            asm1op("li", "t0", String.valueOf(LLVMConstIntGetZExtValue(op1)));
-                            asm1op("lw", "t1", stack_pointers.get(op2) * 4 + "(sp)");
-                            asm2op("div", "t0", "t0", "t1");
-                        }
-                        else if (LLVMIsAConstant(op2) != null) {
-                            asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
-                            asm1op("li", "t1", String.valueOf(LLVMConstIntGetZExtValue(op2)));
-                            asm2op("div", "t0", "t0", "t1");
-                        }
-                        else {
-                            asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
-                            asm1op("lw", "t1", stack_pointers.get(op2) * 4 + "(sp)");
-                            asm2op("div", "t0", "t0", "t1");
-                        }
-                        asm1op("sw", "t0", stack_pointers.get(inst) * 4 + "(sp)");
-                    }
-                    else if (opcode == LLVMSRem) {
-                        stack_pointers.put(inst, count++);
-                        if (LLVMIsAConstant(op1) != null) {
-                            asm1op("li", "t0", String.valueOf(LLVMConstIntGetZExtValue(op1)));
-                            asm1op("lw", "t1", stack_pointers.get(op2) * 4 + "(sp)");
-                            asm2op("rem", "t0", "t0", "t1");
-                        }
-                        else if (LLVMIsAConstant(op2) != null) {
-                            asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
-                            asm1op("li", "t1", String.valueOf(LLVMConstIntGetZExtValue(op2)));
-                            asm2op("rem", "t0", "t0", "t1");
-                        }
-                        else {
-                            asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
-                            asm1op("lw", "t1", stack_pointers.get(op2) * 4 + "(sp)");
-                            asm2op("rem", "t0", "t0", "t1");
-                        }
-                        asm1op("sw", "t0", stack_pointers.get(inst) * 4 + "(sp)");
-                    }
-                    else if (opcode == LLVMRet) {
+//                    if (opcode == LLVMAlloca) {
+//                        stack_pointers.put(inst, count++);
+//                    }
+//                    /**
+//                     *  store i32 3, i32* %c, align 4
+//                     *  store i32 %tmp_2, i32* @b, align 4
+//                     */
+//                    else if (opcode == LLVMStore) {
+//                        // 将常数存入目标地址
+//                        if (LLVMIsAConstant(op1) != null) {
+//                            // 目标地址是全局变量
+//                            if (global_value.contains(op2)) {
+//                                asm1op("li", "t0", String.valueOf(LLVMConstIntGetZExtValue(op1)));
+//                                asm1op("la", "t1", LLVMGetValueName(op2).getString());
+//                                asm1op("sw", "t0", "0(t1)");
+//                            }
+//                            // 目标地址是普通栈帧
+//                            else {
+//                                asm1op("li", "t0", String.valueOf(LLVMConstIntGetZExtValue(op1)));
+//                                asm1op("sw", "t0", stack_pointers.get(op2) * 4 + "(sp)");
+//                            }
+//                        }
+//                        // 将寄存器中数存入目标地址
+//                        else {
+//                            // 目标地址是全局变量
+//                            if (global_value.contains(op2)) {
+//                                asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
+//                                asm1op("la", "t1", LLVMGetValueName(op2).getString());
+//                                asm1op("sw", "t0", "0(t1)");
+//                            }
+//                            // 目标地址是普通栈帧
+//                            else {
+//                                asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
+//                                asm1op("sw", "t0", stack_pointers.get(op2) * 4 + "(sp)");
+//                            }
+//                        }
+//                    }
+//                    /**
+//                     *   %a = load i32, i32* @global_a, align 4
+//                     *   %b = load i32, i32* %pointer_b, align 4
+//                     */
+//                    else if (opcode == LLVMLoad) {
+//                        stack_pointers.put(inst, count++);
+//                        // 从全局变量中提出数，存在寄存器中
+//                        if (global_value.contains(op1))
+//                            asm1op("lw", "t0", LLVMGetValueName(op1).getString());
+//                        // 从栈帧提出数，存在寄存器中
+//                        else
+//                            asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
+//                        asm1op("sw", "t0", stack_pointers.get(inst) * 4 + "(sp)");
+//                    }
+//                    else if (opcode == LLVMAdd) {
+//                        stack_pointers.put(inst, count++);
+//                        if (LLVMIsAConstant(op1) != null) {
+//                            asm1op("li", "t0", String.valueOf(LLVMConstIntGetZExtValue(op1)));
+//                            asm1op("lw", "t1", stack_pointers.get(op2) * 4 + "(sp)");
+//                            asm2op("add", "t0", "t0", "t1");
+//                        }
+//                        else if (LLVMIsAConstant(op2) != null) {
+//                            asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
+//                            asm1op("li", "t1", String.valueOf(LLVMConstIntGetZExtValue(op2)));
+//                            asm2op("add", "t0", "t0", "t1");
+//                        }
+//                        else {
+//                            asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
+//                            asm1op("lw", "t1", stack_pointers.get(op2) * 4 + "(sp)");
+//                            asm2op("add", "t0", "t0", "t1");
+//                        }
+//                        asm1op("sw", "t0", stack_pointers.get(inst) * 4 + "(sp)");
+//                    }
+//                    else if (opcode == LLVMMul) {
+//                        stack_pointers.put(inst, count++);
+//                        if (LLVMIsAConstant(op1) != null) {
+//                            asm1op("li", "t0", String.valueOf(LLVMConstIntGetZExtValue(op1)));
+//                            asm1op("lw", "t1", stack_pointers.get(op2) * 4 + "(sp)");
+//                            asm2op("mul", "t0", "t0", "t1");
+//                        }
+//                        else if (LLVMIsAConstant(op2) != null) {
+//                            asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
+//                            asm1op("li", "t1", String.valueOf(LLVMConstIntGetZExtValue(op2)));
+//                            asm2op("mul", "t0", "t0", "t1");
+//                        }
+//                        else {
+//                            asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
+//                            asm1op("lw", "t1", stack_pointers.get(op2) * 4 + "(sp)");
+//                            asm2op("mul", "t0", "t0", "t1");
+//                        }
+//                        asm1op("sw", "t0", stack_pointers.get(inst) * 4 + "(sp)");
+//                    }
+//                    else if (opcode == LLVMSub) {
+//                        stack_pointers.put(inst, count++);
+//                        if (LLVMIsAConstant(op1) != null) {
+//                            asm1op("li", "t0", String.valueOf(LLVMConstIntGetZExtValue(op1)));
+//                            asm1op("lw", "t1", stack_pointers.get(op2) * 4 + "(sp)");
+//                            asm2op("sub", "t0", "t0", "t1");
+//                        }
+//                        else if (LLVMIsAConstant(op2) != null) {
+//                            asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
+//                            asm1op("li", "t1", String.valueOf(LLVMConstIntGetZExtValue(op2)));
+//                            asm2op("sub", "t0", "t0", "t1");
+//                        }
+//                        else {
+//                            asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
+//                            asm1op("lw", "t1", stack_pointers.get(op2) * 4 + "(sp)");
+//                            asm2op("sub", "t0", "t0", "t1");
+//                        }
+//                        asm1op("sw", "t0", stack_pointers.get(inst) * 4 + "(sp)");
+//                    }
+//                    else if (opcode == LLVMSDiv) {
+//                        stack_pointers.put(inst, count++);
+//                        if (LLVMIsAConstant(op1) != null) {
+//                            asm1op("li", "t0", String.valueOf(LLVMConstIntGetZExtValue(op1)));
+//                            asm1op("lw", "t1", stack_pointers.get(op2) * 4 + "(sp)");
+//                            asm2op("div", "t0", "t0", "t1");
+//                        }
+//                        else if (LLVMIsAConstant(op2) != null) {
+//                            asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
+//                            asm1op("li", "t1", String.valueOf(LLVMConstIntGetZExtValue(op2)));
+//                            asm2op("div", "t0", "t0", "t1");
+//                        }
+//                        else {
+//                            asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
+//                            asm1op("lw", "t1", stack_pointers.get(op2) * 4 + "(sp)");
+//                            asm2op("div", "t0", "t0", "t1");
+//                        }
+//                        asm1op("sw", "t0", stack_pointers.get(inst) * 4 + "(sp)");
+//                    }
+//                    else if (opcode == LLVMSRem) {
+//                        stack_pointers.put(inst, count++);
+//                        if (LLVMIsAConstant(op1) != null) {
+//                            asm1op("li", "t0", String.valueOf(LLVMConstIntGetZExtValue(op1)));
+//                            asm1op("lw", "t1", stack_pointers.get(op2) * 4 + "(sp)");
+//                            asm2op("rem", "t0", "t0", "t1");
+//                        }
+//                        else if (LLVMIsAConstant(op2) != null) {
+//                            asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
+//                            asm1op("li", "t1", String.valueOf(LLVMConstIntGetZExtValue(op2)));
+//                            asm2op("rem", "t0", "t0", "t1");
+//                        }
+//                        else {
+//                            asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
+//                            asm1op("lw", "t1", stack_pointers.get(op2) * 4 + "(sp)");
+//                            asm2op("rem", "t0", "t0", "t1");
+//                        }
+//                        asm1op("sw", "t0", stack_pointers.get(inst) * 4 + "(sp)");
+//                    }
+//                    else
+                    if (opcode == LLVMRet) {
                         // 返回立即数
                         if (LLVMIsAConstant(op1) != null)
                             asm1op("li", "a0", String.valueOf(LLVMConstIntGetZExtValue(op1)));
