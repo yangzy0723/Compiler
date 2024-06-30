@@ -219,7 +219,7 @@ public class AsmBuilder {
                     if (opcode == LLVMRet) {
                         // 返回立即数
                         if (LLVMIsAConstant(op1) != null)
-                            asm1op("li", "a0", String.valueOf(LLVMConstIntGetZExtValue(op1)));
+                            asm1op("li", "a0", String.valueOf((int) LLVMConstIntGetZExtValue(op1)));
                         // 返回寄存器中值
                         else
                             asm1op("lw", "a0", stack_pointers.get(op1) * 4 + "(sp)");
