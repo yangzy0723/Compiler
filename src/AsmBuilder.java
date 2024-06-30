@@ -23,16 +23,16 @@ public class AsmBuilder {
         LLVMDisposeModule(copy_one);
 
         // 处理全局变量
-        for (LLVMValueRef value = LLVMGetFirstGlobal(module); value != null; value = LLVMGetNextGlobal(value)) {
-            global_value.add(value);
-
-            LLVMValueRef globalVarValue = LLVMGetInitializer(value);
-            long v = LLVMConstIntGetZExtValue(globalVarValue);
-
-            buffer.append(".data\n");
-            buffer.append(LLVMGetValueName(value).getString()).append(":\n");
-            buffer.append("  .word ").append(v).append("\n");
-        }
+//        for (LLVMValueRef value = LLVMGetFirstGlobal(module); value != null; value = LLVMGetNextGlobal(value)) {
+//            global_value.add(value);
+//
+//            LLVMValueRef globalVarValue = LLVMGetInitializer(value);
+//            long v = LLVMConstIntGetZExtValue(globalVarValue);
+//
+//            buffer.append(".data\n");
+//            buffer.append(LLVMGetValueName(value).getString()).append(":\n");
+//            buffer.append("  .word ").append(v).append("\n");
+//        }
 
         buffer.append("\n");
 
@@ -53,7 +53,8 @@ public class AsmBuilder {
                     LLVMValueRef op1 = null, op2 = null;
                     if (operandNum == 1) {
                         op1 = LLVMGetOperand(inst, 0);
-                    } else if (operandNum == 2) {
+                    }
+                    else if (operandNum == 2) {
                         op1 = LLVMGetOperand(inst, 0);
                         op2 = LLVMGetOperand(inst, 1);
                     }
