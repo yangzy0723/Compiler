@@ -81,13 +81,13 @@ public class AsmBuilder {
                         if (LLVMIsAConstant(op1) != null) {
                             // 目标地址是全局变量
                             if (global_value.contains(op2)) {
-                                asm1op("li", "t0", String.valueOf(LLVMConstIntGetZExtValue(op1)));
+                                asm1op("li", "t0", String.valueOf((int) LLVMConstIntGetZExtValue(op1)));
                                 asm1op("la", "t1", LLVMGetValueName(op2).getString());
                                 asm1op("sw", "t0", "0(t1)");
                             }
                             // 目标地址是普通栈帧
                             else {
-                                asm1op("li", "t0", String.valueOf(LLVMConstIntGetZExtValue(op1)));
+                                asm1op("li", "t0", String.valueOf((int) LLVMConstIntGetZExtValue(op1)));
                                 asm1op("sw", "t0", stack_pointers.get(op2) * 4 + "(sp)");
                             }
                         }
@@ -123,13 +123,13 @@ public class AsmBuilder {
                     else if (opcode == LLVMAdd) {
                         stack_pointers.put(inst, count++);
                         if (LLVMIsAConstant(op1) != null) {
-                            asm1op("li", "t0", String.valueOf(LLVMConstIntGetZExtValue(op1)));
+                            asm1op("li", "t0", String.valueOf((int) LLVMConstIntGetZExtValue(op1)));
                             asm1op("lw", "t1", stack_pointers.get(op2) * 4 + "(sp)");
                             asm2op("add", "t0", "t0", "t1");
                         }
                         else if (LLVMIsAConstant(op2) != null) {
                             asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
-                            asm1op("li", "t1", String.valueOf(LLVMConstIntGetZExtValue(op2)));
+                            asm1op("li", "t1", String.valueOf((int) LLVMConstIntGetZExtValue(op2)));
                             asm2op("add", "t0", "t0", "t1");
                         }
                         else {
@@ -142,13 +142,13 @@ public class AsmBuilder {
                     else if (opcode == LLVMMul) {
                         stack_pointers.put(inst, count++);
                         if (LLVMIsAConstant(op1) != null) {
-                            asm1op("li", "t0", String.valueOf(LLVMConstIntGetZExtValue(op1)));
+                            asm1op("li", "t0", String.valueOf((int) LLVMConstIntGetZExtValue(op1)));
                             asm1op("lw", "t1", stack_pointers.get(op2) * 4 + "(sp)");
                             asm2op("mul", "t0", "t0", "t1");
                         }
                         else if (LLVMIsAConstant(op2) != null) {
                             asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
-                            asm1op("li", "t1", String.valueOf(LLVMConstIntGetZExtValue(op2)));
+                            asm1op("li", "t1", String.valueOf((int) LLVMConstIntGetZExtValue(op2)));
                             asm2op("mul", "t0", "t0", "t1");
                         }
                         else {
@@ -161,13 +161,13 @@ public class AsmBuilder {
                     else if (opcode == LLVMSub) {
                         stack_pointers.put(inst, count++);
                         if (LLVMIsAConstant(op1) != null) {
-                            asm1op("li", "t0", String.valueOf(LLVMConstIntGetZExtValue(op1)));
+                            asm1op("li", "t0", String.valueOf((int) LLVMConstIntGetZExtValue(op1)));
                             asm1op("lw", "t1", stack_pointers.get(op2) * 4 + "(sp)");
                             asm2op("sub", "t0", "t0", "t1");
                         }
                         else if (LLVMIsAConstant(op2) != null) {
                             asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
-                            asm1op("li", "t1", String.valueOf(LLVMConstIntGetZExtValue(op2)));
+                            asm1op("li", "t1", String.valueOf((int) LLVMConstIntGetZExtValue(op2)));
                             asm2op("sub", "t0", "t0", "t1");
                         }
                         else {
@@ -180,13 +180,13 @@ public class AsmBuilder {
                     else if (opcode == LLVMSDiv) {
                         stack_pointers.put(inst, count++);
                         if (LLVMIsAConstant(op1) != null) {
-                            asm1op("li", "t0", String.valueOf(LLVMConstIntGetZExtValue(op1)));
+                            asm1op("li", "t0", String.valueOf((int) LLVMConstIntGetZExtValue(op1)));
                             asm1op("lw", "t1", stack_pointers.get(op2) * 4 + "(sp)");
                             asm2op("div", "t0", "t0", "t1");
                         }
                         else if (LLVMIsAConstant(op2) != null) {
                             asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
-                            asm1op("li", "t1", String.valueOf(LLVMConstIntGetZExtValue(op2)));
+                            asm1op("li", "t1", String.valueOf((int) LLVMConstIntGetZExtValue(op2)));
                             asm2op("div", "t0", "t0", "t1");
                         }
                         else {
@@ -199,13 +199,13 @@ public class AsmBuilder {
                     else if (opcode == LLVMSRem) {
                         stack_pointers.put(inst, count++);
                         if (LLVMIsAConstant(op1) != null) {
-                            asm1op("li", "t0", String.valueOf(LLVMConstIntGetZExtValue(op1)));
+                            asm1op("li", "t0", String.valueOf((int) LLVMConstIntGetZExtValue(op1)));
                             asm1op("lw", "t1", stack_pointers.get(op2) * 4 + "(sp)");
                             asm2op("rem", "t0", "t0", "t1");
                         }
                         else if (LLVMIsAConstant(op2) != null) {
                             asm1op("lw", "t0", stack_pointers.get(op1) * 4 + "(sp)");
-                            asm1op("li", "t1", String.valueOf(LLVMConstIntGetZExtValue(op2)));
+                            asm1op("li", "t1", String.valueOf((int) LLVMConstIntGetZExtValue(op2)));
                             asm2op("rem", "t0", "t0", "t1");
                         }
                         else {
