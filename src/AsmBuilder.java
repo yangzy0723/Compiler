@@ -1,3 +1,4 @@
+
 import org.bytedeco.llvm.LLVM.LLVMBasicBlockRef;
 import org.bytedeco.llvm.LLVM.LLVMModuleRef;
 import org.bytedeco.llvm.LLVM.LLVMValueRef;
@@ -11,29 +12,57 @@ public class AsmBuilder {
 
     static Set<LLVMValueRef> global_value = new HashSet<>();
     static Map<LLVMValueRef, Integer> stack_pointers = new HashMap<>();
+    static Map<LLVMValueRef, Pair<Integer, Integer>> value_period = new HashMap<>();
 
     public static String buildAsmCode(LLVMModuleRef module) {
-        LLVMModuleRef copy_one = LLVMCloneModule(module);
+        int now_line = 0;
         int stack_size = 0;
-        for (LLVMValueRef func = LLVMGetFirstFunction(copy_one); func != null; func = LLVMGetNextFunction(func))
-            for (LLVMBasicBlockRef basicBlock = LLVMGetFirstBasicBlock(func); basicBlock != null; basicBlock = LLVMGetNextBasicBlock(basicBlock))
-                for (LLVMValueRef inst = LLVMGetFirstInstruction(basicBlock); inst != null; inst = LLVMGetNextInstruction(inst))
-                    if(!Objects.equals(LLVMGetValueName(inst).getString(), ""))
-                        stack_size += 4;
-        LLVMDisposeModule(copy_one);
-
         // 处理全局变量
         for (LLVMValueRef value = LLVMGetFirstGlobal(module); value != null; value = LLVMGetNextGlobal(value)) {
             global_value.add(value);
+            value_period.put(value, new Pair<>(now_line, now_line));
+        }
 
+        for (LLVMValueRef func = LLVMGetFirstFunction(module); func != null; func = LLVMGetNextFunction(func))
+            for (LLVMBasicBlockRef basicBlock = LLVMGetFirstBasicBlock(func); basicBlock != null; basicBlock = LLVMGetNextBasicBlock(basicBlock))
+                for (LLVMValueRef inst = LLVMGetFirstInstruction(basicBlock); inst != null; inst = LLVMGetNextInstruction(inst)) {
+                    if (!Objects.equals(LLVMGetValueName(inst).getString(), ""))
+                        stack_size += 4;
+
+                    // 处理变量生命周期
+                    now_line++;
+                    // 定义了某变量
+                    if (!Objects.equals(LLVMGetValueName(inst).getString(), ""))
+                        value_period.put(inst, new Pair<>(now_line, now_line));
+
+                    // 研究对变量的使用
+                    // 有三种情况，一是使用立即数、二是使用全局变量（@开头），三是使用寄存器（%开头）
+                    int operandNum = LLVMGetNumOperands(inst);
+                    LLVMValueRef op1 = null, op2 = null;
+                    if (operandNum == 1) {
+                        op1 = LLVMGetOperand(inst, 0);
+                        if (LLVMIsAConstant(op1) == null)
+                            value_period.get(op1).setSecond(now_line);
+                    }
+                    else if (operandNum == 2) {
+                        op1 = LLVMGetOperand(inst, 0);
+                        op2 = LLVMGetOperand(inst, 1);
+                        if (LLVMIsAConstant(op1) == null)
+                            value_period.get(op1).setSecond(now_line);
+                        if (LLVMIsAConstant(op2) == null)
+                            value_period.get(op2).setSecond(now_line);
+                    }
+                }
+
+        // 处理全局变量
+        for (LLVMValueRef value = LLVMGetFirstGlobal(module); value != null; value = LLVMGetNextGlobal(value)) {
             LLVMValueRef globalVarValue = LLVMGetInitializer(value);
-            long v = LLVMConstIntGetZExtValue(globalVarValue);
+            int v = (int)LLVMConstIntGetZExtValue(globalVarValue);
 
             buffer.append(".data\n");
             buffer.append(LLVMGetValueName(value).getString()).append(":\n");
             buffer.append("  .word ").append(v).append("\n");
         }
-
         buffer.append("\n");
 
         // 进入main函数
@@ -47,21 +76,14 @@ public class AsmBuilder {
                 buffer.append(LLVMGetBasicBlockName(basicBlock).getString()).append(":\n");
                 for (LLVMValueRef inst = LLVMGetFirstInstruction(basicBlock); inst != null; inst = LLVMGetNextInstruction(inst)) {
                     int opcode = LLVMGetInstructionOpcode(inst);
-
                     int operandNum = LLVMGetNumOperands(inst);
-
-                    LLVMValueRef op1 = null, op2 = null, op3 = null;
+                    LLVMValueRef op1 = null, op2 = null;
                     if (operandNum == 1) {
                         op1 = LLVMGetOperand(inst, 0);
                     }
                     else if (operandNum == 2) {
                         op1 = LLVMGetOperand(inst, 0);
                         op2 = LLVMGetOperand(inst, 1);
-                    }
-                    else if (operandNum == 3) {
-                        op1 = LLVMGetOperand(inst, 0);
-                        op2 = LLVMGetOperand(inst, 1);
-                        op3 = LLVMGetOperand(inst, 2);
                     }
 
                     /**
@@ -248,5 +270,31 @@ public class AsmBuilder {
 
     private static void myEpilogue(int stack_size) {
         asm2op("addi", "sp", "sp", String.valueOf(-1 * stack_size));
+    }
+}
+
+class Pair<T, U> {
+    private T first;
+    private U second;
+
+    public Pair(T first, U second) {
+        this.first = first;
+        this.second = second;
+    }
+
+    public T getFirst() {
+        return first;
+    }
+
+    public U getSecond() {
+        return second;
+    }
+
+    public void setFirst(T first) {
+        this.first = first;
+    }
+
+    public void setSecond(U second) {
+        this.second = second;
     }
 }
