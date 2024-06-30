@@ -13,14 +13,14 @@ public class AsmBuilder {
     static Map<LLVMValueRef, Integer> stack_pointers = new HashMap<>();
 
     public static String buildAsmCode(LLVMModuleRef module) {
-        LLVMModuleRef copy_one = LLVMCloneModule(module);
+//        LLVMModuleRef copy_one = LLVMCloneModule(module);
         int stack_size = 0;
-        for (LLVMValueRef func = LLVMGetFirstFunction(copy_one); func != null; func = LLVMGetNextFunction(func))
-            for (LLVMBasicBlockRef basicBlock = LLVMGetFirstBasicBlock(func); basicBlock != null; basicBlock = LLVMGetNextBasicBlock(basicBlock))
-                for (LLVMValueRef inst = LLVMGetFirstInstruction(basicBlock); inst != null; inst = LLVMGetNextInstruction(inst))
-                    if(!Objects.equals(LLVMGetValueName(inst).getString(), ""))
-                        stack_size += 4;
-        LLVMDisposeModule(copy_one);
+//        for (LLVMValueRef func = LLVMGetFirstFunction(copy_one); func != null; func = LLVMGetNextFunction(func))
+//            for (LLVMBasicBlockRef basicBlock = LLVMGetFirstBasicBlock(func); basicBlock != null; basicBlock = LLVMGetNextBasicBlock(basicBlock))
+//                for (LLVMValueRef inst = LLVMGetFirstInstruction(basicBlock); inst != null; inst = LLVMGetNextInstruction(inst))
+//                    if(!Objects.equals(LLVMGetValueName(inst).getString(), ""))
+//                        stack_size += 4;
+//        LLVMDisposeModule(copy_one);
 
         // 处理全局变量
 //        for (LLVMValueRef value = LLVMGetFirstGlobal(module); value != null; value = LLVMGetNextGlobal(value)) {
