@@ -2,23 +2,15 @@ import org.bytedeco.llvm.LLVM.LLVMBasicBlockRef;
 import org.bytedeco.llvm.LLVM.LLVMModuleRef;
 import org.bytedeco.llvm.LLVM.LLVMValueRef;
 
-import java.sql.SQLOutput;
 import java.util.*;
 
 import static org.bytedeco.llvm.global.LLVM.*;
 
 public class AsmBuilder {
     static StringBuffer buffer = new StringBuffer();
-    static Map<LLVMValueRef, Integer> stack_pointers = new HashMap<>();
+
     static Set<LLVMValueRef> global_value = new HashSet<>();
-
-    public static void asm1op(String op, String dest, String op1) {
-        buffer.append(String.format("  %s %s, %s\n", op, dest, op1));
-    }
-
-    public static void asm2op(String op, String dest, String lhs, String rhs) {
-        buffer.append(String.format("  %s %s, %s, %s\n", op, dest, lhs, rhs));
-    }
+    static Map<LLVMValueRef, Integer> stack_pointers = new HashMap<>();
 
     public static String buildAsmCode(LLVMModuleRef module) {
         LLVMModuleRef copy_one = LLVMCloneModule(module);
@@ -235,11 +227,19 @@ public class AsmBuilder {
         return buffer.toString();
     }
 
-    static void myPrologue(int stack_size) {
+    private static void asm1op(String op, String dest, String op1) {
+        buffer.append(String.format("  %s %s, %s\n", op, dest, op1));
+    }
+
+    private static void asm2op(String op, String dest, String lhs, String rhs) {
+        buffer.append(String.format("  %s %s, %s, %s\n", op, dest, lhs, rhs));
+    }
+
+    private static void myPrologue(int stack_size) {
         asm2op("addi", "sp", "sp", String.valueOf(stack_size));
     }
 
-    static void myEpilogue(int stack_size) {
+    private static void myEpilogue(int stack_size) {
         asm2op("addi", "sp", "sp", String.valueOf(-1 * stack_size));
     }
 }
