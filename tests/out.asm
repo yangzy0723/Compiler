@@ -10,46 +10,36 @@ global_b:
 main:
   addi sp, sp, 52
 mainEntry:
-  li t0, 3
-  sw t0, 0(sp)
-  lw t0, 0(sp)
-  sw t0, 4(sp)
-  lw t0, global_a
-  sw t0, 8(sp)
-  lw t0, 4(sp)
-  lw t1, 8(sp)
-  add t0, t0, t1
-  sw t0, 12(sp)
-  lw t0, 12(sp)
-  li t1, 1
-  add t0, t0, t1
-  sw t0, 16(sp)
-  lw t0, 16(sp)
-  la t1, global_b
-  sw t0, 0(t1)
-  li t0, 10
-  sw t0, 20(sp)
-  lw t0, global_a
-  sw t0, 24(sp)
-  lw t0, global_b
-  sw t0, 28(sp)
-  lw t0, 24(sp)
-  lw t1, 28(sp)
-  add t0, t0, t1
-  sw t0, 32(sp)
-  lw t0, 0(sp)
-  sw t0, 36(sp)
-  lw t0, 32(sp)
-  lw t1, 36(sp)
-  add t0, t0, t1
-  sw t0, 40(sp)
-  lw t0, 20(sp)
-  sw t0, 44(sp)
-  lw t0, 40(sp)
-  lw t1, 44(sp)
-  add t0, t0, t1
-  sw t0, 48(sp)
-  lw a0, 48(sp)
+  li a6, 3
+  mv t0, a6
+  mv a7, t0
+  mv t1, a7
+  lw a7, global_a
+  mv t2, a7
+  add a6, t1, t2
+  mv t3, a6
+  li a7, 1
+  add a6, t3, a7
+  mv t4, a6
+  la a7, global_b
+  sw t4, 0(a7)
+  li a6, 10
+  mv t5, a6
+  lw a7, global_a
+  mv t6, a7
+  lw a7, global_b
+  mv t1, a7
+  add a6, t6, t1
+  mv t2, a6
+  mv a7, t0
+  mv t3, a7
+  add a6, t2, t3
+  mv t0, a6
+  mv a7, t5
+  mv t4, a7
+  add a6, t0, t4
+  mv t5, a6
+  mv a0, t5
   addi sp, sp, -52
   li a7, 93
   ecall
