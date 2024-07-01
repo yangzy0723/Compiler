@@ -19,8 +19,8 @@ public class AsmBuilder {
     public static String buildAsmCode(LLVMModuleRef module) {
         int now_line = 0;
         int stack_size = 0;
-        for (int i = 0; i <= 6; i++)
-            empty_reg.add("t" + i);
+        String[] regs = {"t0", "t1", "t2", "t3", "t4", "t5", "t6", "a1", "a2", "a3", "a4", "a5"};
+        empty_reg.addAll(Arrays.asList(regs));
 
         for (LLVMValueRef func = LLVMGetFirstFunction(module); func != null; func = LLVMGetNextFunction(func))
             for (LLVMBasicBlockRef basicBlock = LLVMGetFirstBasicBlock(func); basicBlock != null; basicBlock = LLVMGetNextBasicBlock(basicBlock))
@@ -99,9 +99,8 @@ public class AsmBuilder {
                      *  像这种语句，其inst本身其实就是%pointer_b的引用，也是定义了一个新变量；
                      *  System.out.println(LLVMGetValueName(inst).getString()); 得到pointer_b
                      */
-                    if (opcode == LLVMAlloca) {
+                    if (opcode == LLVMAlloca)
                         stack_pointers.put(inst, Integer.valueOf(count++));
-                    }
                     /**
                      *  store i32 3, i32* %c, align 4
                      *  store i32 %tmp_2, i32* @b, align 4
@@ -118,13 +117,11 @@ public class AsmBuilder {
                             // 目标地址是普通栈帧
                             else {
                                 asm1op("li", "a6", String.valueOf((int) LLVMConstIntGetZExtValue(op1)));
-                                if (used_reg.containsKey(op2))
-                                    asm1op("mv", used_reg.get(op2), "a6");
-                                else {
+                                if (!used_reg.containsKey(op2)) {
                                     String emptyReg = getEmptyReg(now_line);
                                     used_reg.put(op2, emptyReg);
-                                    asm1op("mv", used_reg.get(op2), "a6");
                                 }
+                                asm1op("mv", used_reg.get(op2), "a6");
                             }
                         }
                         // 将寄存器中数存入目标地址
@@ -142,25 +139,21 @@ public class AsmBuilder {
                             // 目标地址是普通栈帧
                             else {
                                 if (used_reg.containsKey(op1)) {
-                                    if (used_reg.containsKey(op2))
-                                        asm1op("mv", used_reg.get(op2), used_reg.get(op1));
-                                    else {
+                                    if (!used_reg.containsKey(op2)) {
                                         String emptyReg = getEmptyReg(now_line);
                                         used_reg.put(op2, emptyReg);
-                                        asm1op("mv", used_reg.get(op2), used_reg.get(op1));
                                     }
+                                    asm1op("mv", used_reg.get(op2), used_reg.get(op1));
                                 }
                                 else {
                                     String emptyReg = getEmptyReg(now_line);
                                     used_reg.put(op1, emptyReg);
                                     asm1op("lw", used_reg.get(op1), stack_pointers.get(op1) * 4 + "(sp)");
-                                    if (used_reg.containsKey(op2))
-                                        asm1op("mv", used_reg.get(op2), used_reg.get(op1));
-                                    else {
+                                    if(!used_reg.containsKey(op2)) {
                                         String emptyReg1 = getEmptyReg(now_line);
                                         used_reg.put(op2, emptyReg1);
-                                        asm1op("mv", used_reg.get(op2), used_reg.get(op1));
                                     }
+                                    asm1op("mv", used_reg.get(op2), used_reg.get(op1));
                                 }
                             }
                         }
@@ -176,22 +169,18 @@ public class AsmBuilder {
                             asm1op("lw", "a7", LLVMGetValueName(op1).getString());
                         // 从栈帧提出数，存在寄存器中
                         else {
-                            if (used_reg.containsKey(op1))
-                                asm1op("mv", "a7", used_reg.get(op1));
-                            else {
+                            if (!used_reg.containsKey(op1)) {
                                 String emptyReg = getEmptyReg(now_line);
                                 used_reg.put(op1, emptyReg);
                                 asm1op("lw", used_reg.get(op1), stack_pointers.get(op1) * 4 + "(sp)");
-                                asm1op("mv", "a7", used_reg.get(op1));
                             }
+                            asm1op("mv", "a7", used_reg.get(op1));
                         }
-                        if (used_reg.containsKey(inst))
-                            asm1op("mv", used_reg.get(inst), "a7");
-                        else {
+                        if (!used_reg.containsKey(inst)) {
                             String emptyReg = getEmptyReg(now_line);
                             used_reg.put(inst, emptyReg);
-                            asm1op("mv", used_reg.get(inst), "a7");
                         }
+                        asm1op("mv", used_reg.get(inst), "a7");
                     }
                     else if (opcode == LLVMAdd) {
                         stack_pointers.put(inst, Integer.valueOf(count++));
@@ -226,13 +215,11 @@ public class AsmBuilder {
                             }
                             asm2op("add", "a6", used_reg.get(op1), used_reg.get(op2));
                         }
-                        if (used_reg.containsKey(inst))
-                            asm1op("mv", used_reg.get(inst), "a6");
-                        else {
+                        if (!used_reg.containsKey(inst)) {
                             String emptyReg = getEmptyReg(now_line);
                             used_reg.put(inst, emptyReg);
-                            asm1op("mv", used_reg.get(inst), "a6");
                         }
+                        asm1op("mv", used_reg.get(inst), "a6");
                     }
                     else if (opcode == LLVMMul) {
                         stack_pointers.put(inst, Integer.valueOf(count++));
@@ -267,13 +254,11 @@ public class AsmBuilder {
                             }
                             asm2op("mul", "a6", used_reg.get(op1), used_reg.get(op2));
                         }
-                        if (used_reg.containsKey(inst))
-                            asm1op("mv", used_reg.get(inst), "a6");
-                        else {
+                        if (!used_reg.containsKey(inst)) {
                             String emptyReg = getEmptyReg(now_line);
                             used_reg.put(inst, emptyReg);
-                            asm1op("mv", used_reg.get(inst), "a6");
                         }
+                        asm1op("mv", used_reg.get(inst), "a6");
                     }
                     else if (opcode == LLVMSub) {
                         stack_pointers.put(inst, Integer.valueOf(count++));
@@ -308,13 +293,11 @@ public class AsmBuilder {
                             }
                             asm2op("sub", "a6", used_reg.get(op1), used_reg.get(op2));
                         }
-                        if (used_reg.containsKey(inst))
-                            asm1op("mv", used_reg.get(inst), "a6");
-                        else {
+                        if (!used_reg.containsKey(inst)) {
                             String emptyReg = getEmptyReg(now_line);
                             used_reg.put(inst, emptyReg);
-                            asm1op("mv", used_reg.get(inst), "a6");
                         }
+                        asm1op("mv", used_reg.get(inst), "a6");
                     }
                     else if (opcode == LLVMSDiv) {
                         stack_pointers.put(inst, Integer.valueOf(count++));
@@ -349,13 +332,11 @@ public class AsmBuilder {
                             }
                             asm2op("div", "a6", used_reg.get(op1), used_reg.get(op2));
                         }
-                        if (used_reg.containsKey(inst))
-                            asm1op("mv", used_reg.get(inst), "a6");
-                        else {
+                        if (!used_reg.containsKey(inst)) {
                             String emptyReg = getEmptyReg(now_line);
                             used_reg.put(inst, emptyReg);
-                            asm1op("mv", used_reg.get(inst), "a6");
                         }
+                        asm1op("mv", used_reg.get(inst), "a6");
                     }
                     else if (opcode == LLVMSRem) {
                         stack_pointers.put(inst, Integer.valueOf(count++));
@@ -390,13 +371,11 @@ public class AsmBuilder {
                             }
                             asm2op("rem", "a6", used_reg.get(op1), used_reg.get(op2));
                         }
-                        if (used_reg.containsKey(inst))
-                            asm1op("mv", used_reg.get(inst), "a6");
-                        else {
+                        if (!used_reg.containsKey(inst)) {
                             String emptyReg = getEmptyReg(now_line);
                             used_reg.put(inst, emptyReg);
-                            asm1op("mv", used_reg.get(inst), "a6");
                         }
+                        asm1op("mv", used_reg.get(inst), "a6");
                     }
                     else if (opcode == LLVMRet) {
                         // 返回立即数
@@ -404,14 +383,12 @@ public class AsmBuilder {
                             asm1op("li", "a0", String.valueOf((int) LLVMConstIntGetZExtValue(op1)));
                         // 返回寄存器中值
                         else {
-                            if (used_reg.containsKey(op1))
-                                asm1op("mv", "a0", used_reg.get(op1));
-                            else {
+                            if (!used_reg.containsKey(op1)) {
                                 String emptyReg = getEmptyReg(now_line);
                                 used_reg.put(op1, emptyReg);
                                 asm1op("lw", used_reg.get(op1), stack_pointers.get(op1) * 4 + "(sp)");
-                                asm1op("mv", "a0", used_reg.get(op1));
                             }
+                            asm1op("mv", "a0", used_reg.get(op1));
                         }
 
                         myEpilogue(stack_size);
