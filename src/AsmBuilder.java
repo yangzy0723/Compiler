@@ -19,7 +19,7 @@ public class AsmBuilder {
     public static String buildAsmCode(LLVMModuleRef module) {
         int now_line = 0;
         int stack_size = 0;
-        String[] regs = {"t0", "t1", "t2", "t3", "t4", "t5", "t6", "a1", "a2", "a3", "a4", "a5"};
+        String[] regs = {"t0", "t1", "t2", "t3", "t4", "t5", "t6", "a1", "a2", "a3", "a4", "a5", "s2", "s3", "s4", "s5", "s6", "s7", "s8", "s9", "s10", "s11"};
         empty_reg.addAll(Arrays.asList(regs));
 
         for (LLVMValueRef func = LLVMGetFirstFunction(module); func != null; func = LLVMGetNextFunction(func))
