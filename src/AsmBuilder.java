@@ -44,15 +44,15 @@ public class AsmBuilder {
                     if (operandNum == 1) {
                         op1 = LLVMGetOperand(inst, 0);
                         if (LLVMIsAConstant(op1) == null)
-                            value_period.get(op1).setSecond(now_line);
+                            value_period.get(op1).setSecond(Integer.valueOf(now_line));
                     }
                     else if (operandNum == 2) {
                         op1 = LLVMGetOperand(inst, 0);
                         op2 = LLVMGetOperand(inst, 1);
                         if (LLVMIsAConstant(op1) == null)
-                            value_period.get(op1).setSecond(now_line);
+                            value_period.get(op1).setSecond(Integer.valueOf(now_line));
                         if (LLVMIsAConstant(op2) == null)
-                            value_period.get(op2).setSecond(now_line);
+                            value_period.get(op2).setSecond(Integer.valueOf(now_line));
                     }
                 }
 //        for (LLVMValueRef v : value_period.keySet())
@@ -100,7 +100,7 @@ public class AsmBuilder {
                      *  System.out.println(LLVMGetValueName(inst).getString()); 得到pointer_b
                      */
                     if (opcode == LLVMAlloca) {
-                        stack_pointers.put(inst, count++);
+                        stack_pointers.put(inst, Integer.valueOf(count++));
                     }
                     /**
                      *  store i32 3, i32* %c, align 4
@@ -170,7 +170,7 @@ public class AsmBuilder {
                      *   %b = load i32, i32* %pointer_b, align 4
                      */
                     else if (opcode == LLVMLoad) {
-                        stack_pointers.put(inst, count++);
+                        stack_pointers.put(inst, Integer.valueOf(count++));
                         // 从全局变量中提出数，存在寄存器中
                         if (global_value.contains(op1))
                             asm1op("lw", "a7", LLVMGetValueName(op1).getString());
@@ -194,7 +194,7 @@ public class AsmBuilder {
                         }
                     }
                     else if (opcode == LLVMAdd) {
-                        stack_pointers.put(inst, count++);
+                        stack_pointers.put(inst, Integer.valueOf(count++));
                         if (LLVMIsAConstant(op1) != null) {
                             if (!used_reg.containsKey(op2)) {
                                 String emptyReg = getEmptyReg(now_line);
@@ -235,7 +235,7 @@ public class AsmBuilder {
                         }
                     }
                     else if (opcode == LLVMMul) {
-                        stack_pointers.put(inst, count++);
+                        stack_pointers.put(inst, Integer.valueOf(count++));
                         if (LLVMIsAConstant(op1) != null) {
                             if (!used_reg.containsKey(op2)) {
                                 String emptyReg = getEmptyReg(now_line);
@@ -276,7 +276,7 @@ public class AsmBuilder {
                         }
                     }
                     else if (opcode == LLVMSub) {
-                        stack_pointers.put(inst, count++);
+                        stack_pointers.put(inst, Integer.valueOf(count++));
                         if (LLVMIsAConstant(op1) != null) {
                             if (!used_reg.containsKey(op2)) {
                                 String emptyReg = getEmptyReg(now_line);
@@ -317,7 +317,7 @@ public class AsmBuilder {
                         }
                     }
                     else if (opcode == LLVMSDiv) {
-                        stack_pointers.put(inst, count++);
+                        stack_pointers.put(inst, Integer.valueOf(count++));
                         if (LLVMIsAConstant(op1) != null) {
                             if (!used_reg.containsKey(op2)) {
                                 String emptyReg = getEmptyReg(now_line);
@@ -358,7 +358,7 @@ public class AsmBuilder {
                         }
                     }
                     else if (opcode == LLVMSRem) {
-                        stack_pointers.put(inst, count++);
+                        stack_pointers.put(inst, Integer.valueOf(count++));
                         if (LLVMIsAConstant(op1) != null) {
                             if (!used_reg.containsKey(op2)) {
                                 String emptyReg = getEmptyReg(now_line);
@@ -442,7 +442,7 @@ public class AsmBuilder {
 
     private static String getEmptyReg(int now_line) {
         if (!empty_reg.isEmpty())
-            return empty_reg.removeFirst();
+            return empty_reg.remove(0);
         else {
             for (LLVMValueRef llvmValueRef : used_reg.keySet()) {
                 if (value_period.get(llvmValueRef).getSecond() < now_line) {
